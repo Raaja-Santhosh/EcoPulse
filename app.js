@@ -27,6 +27,7 @@ let state = {
 // Global Chart variables
 let compositionChart = null;
 let trendChart = null;
+let lenis = null;
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
@@ -39,6 +40,14 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSimulator();
     setupChallenge();
     setupSandbox();
+    
+    // Premium Motion Setup
+    setupLenis();
+    setupVantaBackground();
+    setupGSAPAnimations();
+    setupCustomCursor();
+    setupLandingTriggers();
+    
     renderApp();
 });
 
@@ -505,7 +514,7 @@ function setupChallenge() {
     });
 }
 
-// Decision Sandbox Tab (Awareness click moments)
+// Decision Sandbox Tab
 let sandboxSelection = {
     meal: 'burger',
     commute: 'suv'
@@ -520,7 +529,6 @@ function setupSandbox() {
     const orderBtn = document.getElementById('nudge-btn-order');
     const commuteBtn = document.getElementById('nudge-btn-commute');
 
-    // Select Meal Option
     if (burgerCard && bowlCard) {
         burgerCard.addEventListener('click', () => {
             burgerCard.classList.add('selected');
@@ -534,7 +542,6 @@ function setupSandbox() {
         });
     }
 
-    // Select Commute Option
     if (suvCard && trainCard) {
         suvCard.addEventListener('click', () => {
             suvCard.classList.add('selected');
@@ -548,12 +555,11 @@ function setupSandbox() {
         });
     }
 
-    // Nudge Modals Event Handlers
     const overlay = document.getElementById('nudge-alert-overlay');
     const cancelBtn = document.getElementById('nudge-alert-cancel');
     const changeBtn = document.getElementById('nudge-alert-change');
 
-    let activeNudgeType = ''; // 'meal' or 'commute'
+    let activeNudgeType = '';
 
     if (orderBtn) {
         orderBtn.addEventListener('click', () => {
@@ -564,7 +570,6 @@ function setupSandbox() {
                     'Ordering a Beef Burger with 5-mile courier transit produces <strong>8.2 kg of CO₂e</strong>. Shifting to a local Vegan Buddha Bowl (1-mile walk transit) emits only <strong>0.6 kg</strong>—saving 7.6 kg of carbon (equivalent to charging your phone 950 times!).'
                 );
             } else {
-                // Confirm eco meal directly
                 confirmEcoDecision('meal');
             }
         });
@@ -579,7 +584,6 @@ function setupSandbox() {
                     'Driving a solo Petrol SUV for 15 miles emits <strong>6.2 kg of CO₂e</strong>. Shifting to the shared Electric Metro Train emits only <strong>1.2 kg</strong>—saving 5.0 kg of carbon (equivalent to planting a tree seedling!).'
                 );
             } else {
-                // Confirm eco commute directly
                 confirmEcoDecision('commute');
             }
         });
@@ -587,7 +591,6 @@ function setupSandbox() {
 
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
-            // Proceed with original choice
             overlay.classList.add('hidden');
             logCarbonDecision(activeNudgeType, false);
         });
@@ -595,7 +598,6 @@ function setupSandbox() {
 
     if (changeBtn) {
         changeBtn.addEventListener('click', () => {
-            // Nudged! Switch to eco-friendly option
             overlay.classList.add('hidden');
             if (activeNudgeType === 'meal') {
                 if (bowlCard) bowlCard.click();
@@ -666,7 +668,6 @@ function setupAssistant() {
     const keyInput = document.getElementById('gemini-key-input');
     const statusEl = document.getElementById('gemini-status');
 
-    // Load API Key
     const savedKey = localStorage.getItem('ecopulse_gemini_key');
     if (savedKey) {
         if (keyInput) keyInput.value = savedKey;
@@ -722,7 +723,6 @@ function handleUserMessage(msg) {
     
     container.scrollTop = container.scrollHeight;
 
-    // Show indicator
     const typingIndicator = document.createElement('div');
     typingIndicator.className = 'message assistant-msg typing-msg';
     typingIndicator.innerHTML = `<p>Thinking...</p>`;
@@ -732,7 +732,6 @@ function handleUserMessage(msg) {
     const apiKey = localStorage.getItem('ecopulse_gemini_key');
 
     if (apiKey) {
-        // Trigger live Gemini API call
         const score = (state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste).toFixed(1);
         const requestPayload = {
             contents: [{
@@ -834,12 +833,11 @@ function updateEcoIsland(score) {
     if (!sky || !smog || !sun || !birds || !grass || !t1 || !t2 || !t3 || !statusText || !healthBadge) return;
 
     if (score < 4.0) {
-        // HEALTHY STATE
-        sky.setAttribute('fill', '#a4c6df'); // sky-blue
+        sky.setAttribute('fill', '#a4c6df');
         smog.setAttribute('opacity', '0');
-        sun.setAttribute('fill', '#fde047'); // bright yellow
+        sun.setAttribute('fill', '#fde047');
         birds.setAttribute('opacity', '1');
-        grass.setAttribute('fill', '#4ade80'); // bright green grass
+        grass.setAttribute('fill', '#4ade80');
         t1.setAttribute('r', '20'); t1.setAttribute('fill', '#15803d');
         t2.setAttribute('r', '28'); t2.setAttribute('fill', '#166534');
         t3.setAttribute('r', '16'); t3.setAttribute('fill', '#15803d');
@@ -850,14 +848,13 @@ function updateEcoIsland(score) {
         healthBadge.style.backgroundColor = 'rgba(154, 219, 165, 0.1)';
         statusText.innerText = 'Your atmosphere is fresh, and plants are thriving.';
     } else if (score <= 10.0) {
-        // MODERATE STATE
-        sky.setAttribute('fill', '#94a3b8'); // greyish slate
-        smog.setAttribute('opacity', '0.35'); // slight smog
-        sun.setAttribute('fill', '#e2e8f0'); // pale yellow sun
-        birds.setAttribute('opacity', '0'); // birds flee
-        grass.setAttribute('fill', '#a3e635'); // yellowish-green grass
-        t1.setAttribute('r', '12'); t1.setAttribute('fill', '#854d0e'); // brownish
-        t2.setAttribute('r', '20'); t2.setAttribute('fill', '#166534'); // moderate foliage
+        sky.setAttribute('fill', '#94a3b8');
+        smog.setAttribute('opacity', '0.35');
+        sun.setAttribute('fill', '#e2e8f0');
+        birds.setAttribute('opacity', '0');
+        grass.setAttribute('fill', '#a3e635');
+        t1.setAttribute('r', '12'); t1.setAttribute('fill', '#854d0e');
+        t2.setAttribute('r', '20'); t2.setAttribute('fill', '#166534');
         t3.setAttribute('r', '8'); t3.setAttribute('fill', '#854d0e');
         
         healthBadge.innerText = 'Moderate';
@@ -866,13 +863,12 @@ function updateEcoIsland(score) {
         healthBadge.style.backgroundColor = 'rgba(223, 138, 96, 0.1)';
         statusText.innerText = 'Moderate emissions. Smog is forming, and smaller trees are starting to dry.';
     } else {
-        // CRITICAL STATE
-        sky.setAttribute('fill', '#475569'); // dark slate stormy
-        smog.setAttribute('opacity', '0.75'); // heavy smog overlay
-        sun.setAttribute('fill', '#64748b'); // blocked sun
+        sky.setAttribute('fill', '#475569');
+        smog.setAttribute('opacity', '0.75');
+        sun.setAttribute('fill', '#64748b');
         birds.setAttribute('opacity', '0');
-        grass.setAttribute('fill', '#78350f'); // dry brown dirt soil
-        t1.setAttribute('r', '2'); t1.setAttribute('fill', '#451a03'); // withered branches
+        grass.setAttribute('fill', '#78350f');
+        t1.setAttribute('r', '2'); t1.setAttribute('fill', '#451a03');
         t2.setAttribute('r', '4'); t2.setAttribute('fill', '#451a03');
         t3.setAttribute('r', '2'); t3.setAttribute('fill', '#451a03');
         
@@ -884,9 +880,212 @@ function updateEcoIsland(score) {
     }
 }
 
+// ----------------------------------------------------
+// PREMIUM MOTION IMPLEMENTATION (LENIS, GSAP, VANTA)
+// ----------------------------------------------------
+
+// 1. Lenis Smooth Scroll Setup
+function setupLenis() {
+    if (typeof Lenis !== 'undefined') {
+        lenis = new Lenis({
+            duration: 1.3,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
+            smoothWheel: true
+        });
+
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+    }
+}
+
+// 2. Vanta Fog Background (Hero Section)
+let vantaInstance = null;
+function setupVantaBackground() {
+    const container = document.getElementById('vanta-bg-container');
+    if (container && typeof VANTA !== 'undefined' && typeof THREE !== 'undefined') {
+        vantaInstance = VANTA.FOG({
+            el: "#vanta-bg-container",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            highlightColor: 0xc2d8b4, // Muted Sage
+            mitchellColor: 0xdf8a60,  // Terracotta
+            baseColor: 0x131412,      // Warm charcoal
+            lowlightColor: 0x1b1d19,  // Secondary card base
+            blurFactor: 0.60,
+            speed: 1.20,
+            zoom: 1.10
+        });
+    }
+}
+
+// 3. GSAP ScrollTrigger Story reveals & CountUp Numbers
+function setupGSAPAnimations() {
+    if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero title stagger reveal
+        gsap.fromTo(".reveal-word", {
+            opacity: 0,
+            y: 35
+        }, {
+            opacity: 1,
+            y: 0,
+            duration: 0.9,
+            stagger: 0.18,
+            ease: "power4.out"
+        });
+
+        // Story 1 Section Staggers
+        gsap.from("#story-section-1 .story-headline, #story-section-1 .story-body", {
+            scrollTrigger: {
+                trigger: "#story-section-1",
+                start: "top 75%",
+                toggleActions: "play none none reverse"
+            },
+            opacity: 0,
+            y: 40,
+            duration: 1,
+            stagger: 0.3,
+            ease: "power2.out"
+        });
+
+        // Story 1: Carbon footprint number counter
+        gsap.fromTo("#target-count-number", {
+            innerText: "0.0"
+        }, {
+            innerText: "16.0",
+            duration: 2.2,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: "#story-section-1",
+                start: "top 60%"
+            },
+            snap: { innerText: 0.1 },
+            onUpdate: function() {
+                const val = parseFloat(this.targets()[0].innerText);
+                this.targets()[0].innerText = val.toFixed(1);
+            }
+        });
+
+        // Story 2: Eco-Island showcase visual scaling
+        gsap.from(".showcase-island-wrapper", {
+            scrollTrigger: {
+                trigger: "#story-section-2",
+                start: "top 70%",
+                toggleActions: "play none none reverse"
+            },
+            scale: 0.75,
+            opacity: 0.1,
+            duration: 1.3,
+            ease: "power2.out"
+        });
+
+        // Story 2: Text staggers
+        gsap.from("#story-section-2 .showcase-left .story-headline, #story-section-2 .showcase-left .story-body", {
+            scrollTrigger: {
+                trigger: "#story-section-2",
+                start: "top 75%",
+                toggleActions: "play none none reverse"
+            },
+            opacity: 0,
+            x: -40,
+            duration: 1.1,
+            stagger: 0.25,
+            ease: "power2.out"
+        });
+    }
+}
+
+// 4. Custom cursor morphing follow
+function setupCustomCursor() {
+    const cursor = document.getElementById('custom-cursor');
+    if (!cursor) return;
+
+    document.addEventListener('mousemove', (e) => {
+        gsap.to(cursor, {
+            x: e.clientX,
+            y: e.clientY,
+            duration: 0.08,
+            ease: "power2.out"
+        });
+    });
+
+    // Cursor Expansion elements
+    const updateInteractives = () => {
+        const targets = document.querySelectorAll('button, select, input, a, .option-btn, .nudge-opt-card, .filter-btn');
+        targets.forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('cursor-expand'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('cursor-expand'));
+        });
+    };
+
+    updateInteractives();
+    
+    // Mutation Observer to watch dynamic additions
+    const observer = new MutationObserver(updateInteractives);
+    observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// 5. Landing Page Transition Triggers
+function setupLandingTriggers() {
+    const heroEnterBtn = document.getElementById('hero-enter-btn');
+    const ctaEnterBtn = document.getElementById('cta-enter-btn');
+    const landingPage = document.getElementById('landing-page');
+    const appInterface = document.getElementById('app-interface');
+
+    if (heroEnterBtn && lenis) {
+        heroEnterBtn.addEventListener('click', () => {
+            lenis.scrollTo('#story-section-1');
+        });
+    }
+
+    const launchApp = () => {
+        if (landingPage && appInterface) {
+            // Fade out landing
+            gsap.to(landingPage, {
+                opacity: 0,
+                y: -50,
+                duration: 0.8,
+                ease: "power3.inOut",
+                onComplete: () => {
+                    landingPage.style.display = 'none';
+                    appInterface.classList.remove('hidden');
+                    
+                    // Trigger fade in app
+                    setTimeout(() => {
+                        appInterface.classList.add('visible');
+                        // Destroy Vanta WebGL instance to free up GPU memory
+                        if (vantaInstance) {
+                            vantaInstance.destroy();
+                            vantaInstance = null;
+                        }
+                        // Reset smooth scroll back to top of page
+                        if (lenis) {
+                            lenis.scrollTo(0, { immediate: true });
+                        }
+                        initCharts();
+                        triggerConfetti();
+                    }, 50);
+                }
+            });
+        }
+    };
+
+    if (ctaEnterBtn) {
+        ctaEnterBtn.addEventListener('click', launchApp);
+    }
+}
+
 // Redraw / Update dashboard displays
 function renderApp() {
     if (!state.isOnboarded) {
+        // If not onboarded, make sure dashboard content is hidden
         document.getElementById('onboarding-section').classList.remove('hidden');
         document.getElementById('dashboard-tab').classList.add('hidden');
         document.getElementById('nav-dashboard').classList.add('active');
@@ -897,12 +1096,15 @@ function renderApp() {
     
     const activeBtn = document.querySelector('.nav-btn.active');
     const activeTabId = activeBtn ? activeBtn.dataset.tab : 'dashboard-tab';
-    document.getElementById(activeTabId).classList.remove('hidden');
+    
+    const tabEl = document.getElementById(activeTabId);
+    if (tabEl) {
+        tabEl.classList.remove('hidden');
+    }
 
     const totalFootprintVal = (state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste).toFixed(1);
     document.getElementById('total-carbon-score').innerText = totalFootprintVal;
 
-    // Update Living World Eco-Island
     updateEcoIsland(parseFloat(totalFootprintVal));
 
     const avgRegional = 16.0;
@@ -925,13 +1127,11 @@ function renderApp() {
     document.getElementById('streak-val').innerText = `${state.streak} days`;
     document.getElementById('points-val').innerText = `${state.xp} XP`;
 
-    // Leaderboard update
     const userXpDisplay = document.getElementById('user-xp-display');
     if (userXpDisplay) {
         userXpDisplay.innerText = `${state.xp} XP`;
     }
 
-    // Dynamic Floor Challenge Leaderboard Sorting
     const leaderboardItems = [
         { name: 'Floor 3 (Forest Guardians)', xp: 3850, avatar: '🏢', currentUser: false },
         { name: 'Floor 2 (Your Floor)', xp: state.xp, avatar: '🏫', currentUser: true },
@@ -961,7 +1161,6 @@ function renderApp() {
         });
     }
 
-    // Level calculator
     let levelName = 'Level 1: Seedling';
     if (state.xp > 1500) levelName = 'Level 5: Forest Guardian';
     else if (state.xp > 700) levelName = 'Level 4: Oak Tree';
@@ -970,7 +1169,6 @@ function renderApp() {
     
     document.getElementById('user-level').innerText = levelName;
 
-    // Challenge Banner Completed Check
     const claimBtn = document.getElementById('claim-challenge-btn');
     if (claimBtn) {
         if (state.challengeCompleted) {
