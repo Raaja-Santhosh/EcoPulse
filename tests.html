@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoPulse | Test Runner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #131412;
+            --bg-card: #1b1d19;
+            --border-color: #2c3327;
+            --text-primary: #f2f3f0;
+            --text-secondary: #9da397;
+            --color-success: #9adba5;
+            --color-danger: #e27c7c;
+            --color-accent-sand: #e8ddc5;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            padding: 2.5rem 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--color-accent-sand);
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        .summary-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        .summary-stat span {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-top: 0.25rem;
+        }
+        .stat-pass { color: var(--color-success); }
+        .stat-fail { color: var(--color-danger); }
+        .test-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .test-item {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        .badge-pass {
+            background-color: rgba(154, 219, 165, 0.1);
+            color: var(--color-success);
+            border: 1px solid var(--color-success);
+        }
+        .badge-fail {
+            background-color: rgba(226, 124, 124, 0.1);
+            color: var(--color-danger);
+            border: 1px solid var(--color-danger);
+        }
+        .test-err-msg {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--color-danger);
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>EcoPulse Functionality Validation</h1>
+    <p class="subtitle">Automated unit test suite verifying carbon calculator logic formulas and safety margins.</p>
+    
+    <div class="summary-card">
+        <div class="summary-stat">
+            Total Tests
+            <span id="stat-total">0</span>
+        </div>
+        <div class="summary-stat">
+            Passed
+            <span id="stat-passed" class="stat-pass">0</span>
+        </div>
+        <div class="summary-stat">
+            Failed
+            <span id="stat-failed" class="stat-fail">0</span>
+        </div>
+    </div>
+
+    <div class="test-list" id="test-list-container">
+        <!-- Runs on page load -->
+    </div>
+
+    <script src="tests.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof Suite !== 'undefined') {
+                Suite.run((report) => {
+                    document.getElementById('stat-total').innerText = report.total;
+                    document.getElementById('stat-passed').innerText = report.passed;
+                    document.getElementById('stat-failed').innerText = report.failed;
+
+                    const container = document.getElementById('test-list-container');
+                    container.innerHTML = '';
+
+                    report.results.forEach(result => {
+                        const item = document.createElement('div');
+                        item.className = 'test-item';
+                        
+                        const isPass = result.status === 'PASS';
+                        const badgeClass = isPass ? 'badge-pass' : 'badge-fail';
+                        const errMsg = !isPass ? `<span class="test-err-msg">${result.error}</span>` : '';
+
+                        item.innerHTML = `
+                            <div>
+                                <strong>${result.name}</strong>
+                                ${errMsg}
+                            </div>
+                            <span class="test-badge ${badgeClass}">${result.status}</span>
+                        `;
+                        container.appendChild(item);
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

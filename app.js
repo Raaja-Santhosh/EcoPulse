@@ -539,7 +539,9 @@ function handleUserMessage(msg) {
 
     const userDiv = document.createElement('div');
     userDiv.className = 'message user-msg';
-    userDiv.innerHTML = `<p>${msg}</p>`;
+    const p = document.createElement('p');
+    p.textContent = msg;
+    userDiv.appendChild(p);
     container.appendChild(userDiv);
     
     container.scrollTop = container.scrollHeight;

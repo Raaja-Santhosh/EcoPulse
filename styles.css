@@ -1085,3 +1085,11 @@ body {
 .hidden {
     display: none !important;
 }
+
+/* Accessibility Focus States */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--color-accent-sand);
+    outline-offset: 3px;
+}
