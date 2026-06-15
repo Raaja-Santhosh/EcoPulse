@@ -24,6 +24,14 @@ let state = {
     challengeCompleted: false
 };
 
+// Previous Stats for Ticker Animation
+let prevStats = {
+    totalFootprint: 0,
+    weeklySavings: 0,
+    treeEquivalent: 0,
+    xpPoints: 0
+};
+
 // Global Chart variables
 let compositionChart = null;
 let trendChart = null;
@@ -57,6 +65,12 @@ function loadState() {
     if (savedState) {
         try {
             state = JSON.parse(savedState);
+            prevStats.totalFootprint = parseFloat((state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste).toFixed(1));
+            
+            const annualSavings = state.actions.filter(a => a.completed).reduce((sum, a) => sum + a.savings, 0);
+            prevStats.weeklySavings = parseFloat(((annualSavings * 1000) / 52).toFixed(1));
+            prevStats.treeEquivalent = Math.round((annualSavings * 1000) / 22);
+            prevStats.xpPoints = state.xp;
         } catch (e) {
             console.error('Error parsing local storage state, using default.', e);
         }
@@ -817,69 +831,6 @@ function getAssistantResponse(query) {
     return `🌱 I'm your eco-assistant! You can ask me details about diet, utility calculations, transport footprints, or our badges. Try asking: *'Suggest some diet recipes'* or *'How can I save transport emissions?'*`;
 }
 
-// Update the dynamic Eco-Island SVG visualization based on total carbon emissions
-function updateEcoIsland(score) {
-    const sky = document.getElementById('island-sky');
-    const smog = document.getElementById('island-smog');
-    const sun = document.getElementById('island-sun');
-    const birds = document.getElementById('birds-group');
-    const grass = document.getElementById('island-grass');
-    const t1 = document.getElementById('tree1-leaves');
-    const t2 = document.getElementById('tree2-leaves');
-    const t3 = document.getElementById('tree3-leaves');
-    const statusText = document.getElementById('island-status-desc');
-    const healthBadge = document.getElementById('island-health-badge');
-
-    if (!sky || !smog || !sun || !birds || !grass || !t1 || !t2 || !t3 || !statusText || !healthBadge) return;
-
-    if (score < 4.0) {
-        sky.setAttribute('fill', '#a4c6df');
-        smog.setAttribute('opacity', '0');
-        sun.setAttribute('fill', '#fde047');
-        birds.setAttribute('opacity', '1');
-        grass.setAttribute('fill', '#4ade80');
-        t1.setAttribute('r', '20'); t1.setAttribute('fill', '#15803d');
-        t2.setAttribute('r', '28'); t2.setAttribute('fill', '#166534');
-        t3.setAttribute('r', '16'); t3.setAttribute('fill', '#15803d');
-        
-        healthBadge.innerText = 'Healthy';
-        healthBadge.style.color = 'var(--color-success)';
-        healthBadge.style.borderColor = 'var(--color-success)';
-        healthBadge.style.backgroundColor = 'rgba(154, 219, 165, 0.1)';
-        statusText.innerText = 'Your atmosphere is fresh, and plants are thriving.';
-    } else if (score <= 10.0) {
-        sky.setAttribute('fill', '#94a3b8');
-        smog.setAttribute('opacity', '0.35');
-        sun.setAttribute('fill', '#e2e8f0');
-        birds.setAttribute('opacity', '0');
-        grass.setAttribute('fill', '#a3e635');
-        t1.setAttribute('r', '12'); t1.setAttribute('fill', '#854d0e');
-        t2.setAttribute('r', '20'); t2.setAttribute('fill', '#166534');
-        t3.setAttribute('r', '8'); t3.setAttribute('fill', '#854d0e');
-        
-        healthBadge.innerText = 'Moderate';
-        healthBadge.style.color = 'var(--color-accent-terracotta)';
-        healthBadge.style.borderColor = 'var(--color-accent-terracotta)';
-        healthBadge.style.backgroundColor = 'rgba(223, 138, 96, 0.1)';
-        statusText.innerText = 'Moderate emissions. Smog is forming, and smaller trees are starting to dry.';
-    } else {
-        sky.setAttribute('fill', '#475569');
-        smog.setAttribute('opacity', '0.75');
-        sun.setAttribute('fill', '#64748b');
-        birds.setAttribute('opacity', '0');
-        grass.setAttribute('fill', '#78350f');
-        t1.setAttribute('r', '2'); t1.setAttribute('fill', '#451a03');
-        t2.setAttribute('r', '4'); t2.setAttribute('fill', '#451a03');
-        t3.setAttribute('r', '2'); t3.setAttribute('fill', '#451a03');
-        
-        healthBadge.innerText = 'Severe';
-        healthBadge.style.color = 'var(--color-danger)';
-        healthBadge.style.borderColor = 'var(--color-danger)';
-        healthBadge.style.backgroundColor = 'rgba(226, 124, 124, 0.1)';
-        statusText.innerText = 'High emissions warning! Acid rain and toxic smog have withered the island ecosystem.';
-    }
-}
-
 // ----------------------------------------------------
 // PREMIUM MOTION IMPLEMENTATION (LENIS, GSAP, VANTA)
 // ----------------------------------------------------
@@ -913,10 +864,10 @@ function setupVantaBackground() {
             gyroControls: false,
             minHeight: 200.00,
             minWidth: 200.00,
-            highlightColor: 0xc2d8b4, // Muted Sage
-            mitchellColor: 0xdf8a60,  // Terracotta
-            baseColor: 0x131412,      // Warm charcoal
-            lowlightColor: 0x1b1d19,  // Secondary card base
+            highlightColor: 0xc2d8b4,
+            mitchellColor: 0xdf8a60,
+            baseColor: 0x131412,
+            lowlightColor: 0x1b1d19,
             blurFactor: 0.60,
             speed: 1.20,
             zoom: 1.10
@@ -928,6 +879,9 @@ function setupVantaBackground() {
 function setupGSAPAnimations() {
     if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         gsap.registerPlugin(ScrollTrigger);
+
+        const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (isReducedMotion) return; // Skip heavy animations
 
         // Hero title stagger reveal
         gsap.fromTo(".reveal-word", {
@@ -941,31 +895,49 @@ function setupGSAPAnimations() {
             ease: "power4.out"
         });
 
-        // Story 1 Section Staggers
-        gsap.from("#story-section-1 .story-headline, #story-section-1 .story-body", {
+        // Story 1: Definition Image reveal
+        gsap.from("#showcase-img-island", {
             scrollTrigger: {
                 trigger: "#story-section-1",
-                start: "top 75%",
+                start: "top 70%",
                 toggleActions: "play none none reverse"
             },
-            opacity: 0,
-            y: 40,
-            duration: 1,
-            stagger: 0.3,
+            scale: 0.85,
+            opacity: 0.2,
+            duration: 1.4,
             ease: "power2.out"
         });
 
-        // Story 1: Carbon footprint number counter
-        gsap.fromTo("#target-count-number", {
-            innerText: "0.0"
-        }, {
-            innerText: "16.0",
-            duration: 2.2,
-            ease: "power2.out",
+        // Story 2: Causes Image reveal
+        gsap.from("#showcase-img-sources", {
             scrollTrigger: {
-                trigger: "#story-section-1",
+                trigger: "#story-section-2",
+                start: "top 70%",
+                toggleActions: "play none none reverse"
+            },
+            scale: 0.85,
+            opacity: 0.2,
+            duration: 1.4,
+            ease: "power2.out"
+        });
+
+        // Story 2: Cause List Items stagger
+        gsap.from(".cause-list-item", {
+            scrollTrigger: {
+                trigger: "#story-section-2",
                 start: "top 60%"
             },
+            opacity: 0,
+            x: 50,
+            duration: 0.8,
+            stagger: 0.15,
+            ease: "power2.out"
+        });
+
+        // Story 3: Comparative Statistics Counters CountUp Concurrent
+        gsap.fromTo("#counter-india", { innerText: "0.0" }, {
+            innerText: "1.9", duration: 2.0, ease: "power2.out",
+            scrollTrigger: { trigger: "#story-section-3", start: "top 60%" },
             snap: { innerText: 0.1 },
             onUpdate: function() {
                 const val = parseFloat(this.targets()[0].innerText);
@@ -973,31 +945,24 @@ function setupGSAPAnimations() {
             }
         });
 
-        // Story 2: Eco-Island showcase visual scaling
-        gsap.from(".showcase-island-wrapper", {
-            scrollTrigger: {
-                trigger: "#story-section-2",
-                start: "top 70%",
-                toggleActions: "play none none reverse"
-            },
-            scale: 0.75,
-            opacity: 0.1,
-            duration: 1.3,
-            ease: "power2.out"
+        gsap.fromTo("#counter-target", { innerText: "0.0" }, {
+            innerText: "2.0", duration: 2.0, ease: "power2.out",
+            scrollTrigger: { trigger: "#story-section-3", start: "top 60%" },
+            snap: { innerText: 0.1 },
+            onUpdate: function() {
+                const val = parseFloat(this.targets()[0].innerText);
+                this.targets()[0].innerText = val.toFixed(1);
+            }
         });
 
-        // Story 2: Text staggers
-        gsap.from("#story-section-2 .showcase-left .story-headline, #story-section-2 .showcase-left .story-body", {
-            scrollTrigger: {
-                trigger: "#story-section-2",
-                start: "top 75%",
-                toggleActions: "play none none reverse"
-            },
-            opacity: 0,
-            x: -40,
-            duration: 1.1,
-            stagger: 0.25,
-            ease: "power2.out"
+        gsap.fromTo("#counter-western", { innerText: "0.0" }, {
+            innerText: "16.0", duration: 2.0, ease: "power2.out",
+            scrollTrigger: { trigger: "#story-section-3", start: "top 60%" },
+            snap: { innerText: 0.1 },
+            onUpdate: function() {
+                const val = parseFloat(this.targets()[0].innerText);
+                this.targets()[0].innerText = val.toFixed(1);
+            }
         });
     }
 }
@@ -1016,7 +981,6 @@ function setupCustomCursor() {
         });
     });
 
-    // Cursor Expansion elements
     const updateInteractives = () => {
         const targets = document.querySelectorAll('button, select, input, a, .option-btn, .nudge-opt-card, .filter-btn');
         targets.forEach(el => {
@@ -1027,7 +991,6 @@ function setupCustomCursor() {
 
     updateInteractives();
     
-    // Mutation Observer to watch dynamic additions
     const observer = new MutationObserver(updateInteractives);
     observer.observe(document.body, { childList: true, subtree: true });
 }
@@ -1047,7 +1010,6 @@ function setupLandingTriggers() {
 
     const launchApp = () => {
         if (landingPage && appInterface) {
-            // Fade out landing
             gsap.to(landingPage, {
                 opacity: 0,
                 y: -50,
@@ -1057,15 +1019,12 @@ function setupLandingTriggers() {
                     landingPage.style.display = 'none';
                     appInterface.classList.remove('hidden');
                     
-                    // Trigger fade in app
                     setTimeout(() => {
                         appInterface.classList.add('visible');
-                        // Destroy Vanta WebGL instance to free up GPU memory
                         if (vantaInstance) {
                             vantaInstance.destroy();
                             vantaInstance = null;
                         }
-                        // Reset smooth scroll back to top of page
                         if (lenis) {
                             lenis.scrollTo(0, { immediate: true });
                         }
@@ -1082,10 +1041,155 @@ function setupLandingTriggers() {
     }
 }
 
+// ----------------------------------------------------
+// DYNAMIC TICKER COUNTER & PROGRESS BAR ANIMATIONS
+// ----------------------------------------------------
+
+// Custom numeric rolling counter animation
+function animateStatCounter(el, start, end, decimals = 1) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        el.innerText = end.toFixed(decimals);
+        return;
+    }
+    
+    let current = start;
+    const range = end - start;
+    const duration = 1200; // 1.2s Eased counter transition
+    let startTime = null;
+
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        // EaseOut cubic curve
+        const ease = 1 - Math.pow(1 - progress, 3);
+        current = start + range * ease;
+        el.innerText = current.toFixed(decimals);
+        
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        } else {
+            el.innerText = end.toFixed(decimals);
+        }
+    }
+    requestAnimationFrame(step);
+}
+
+// Update level progress bar width based on XP
+function updateXPProgressBar(points) {
+    const bar = document.getElementById('xp-progress-bar');
+    if (!bar) return;
+
+    let tierMin = 0;
+    let tierMax = 100;
+
+    if (points > 1500) {
+        bar.style.width = '100%';
+        return;
+    } else if (points > 700) {
+        tierMin = 701;
+        tierMax = 1500;
+    } else if (points > 300) {
+        tierMin = 301;
+        tierMax = 700;
+    } else if (points > 100) {
+        tierMin = 101;
+        tierMax = 300;
+    }
+
+    const range = tierMax - tierMin;
+    const progress = points - tierMin;
+    const percent = Math.min(100, Math.max(0, (progress / range) * 100));
+
+    bar.style.width = `${percent}%`;
+}
+
+// Update the dynamic Eco-Island SVG visualization based on total carbon emissions using GSAP
+function updateEcoIsland(score) {
+    const sky = document.getElementById('island-sky');
+    const smog = document.getElementById('island-smog');
+    const sun = document.getElementById('island-sun');
+    const birds = document.getElementById('birds-group');
+    const grass = document.getElementById('island-grass');
+    const t1 = document.getElementById('tree1-leaves');
+    const t2 = document.getElementById('tree2-leaves');
+    const t3 = document.getElementById('tree3-leaves');
+    const statusText = document.getElementById('island-status-desc');
+    const healthBadge = document.getElementById('island-health-badge');
+
+    if (!sky || !smog || !sun || !birds || !grass || !t1 || !t2 || !t3 || !statusText || !healthBadge) return;
+
+    let targetSkyColor = '#a4c6df';
+    let targetSmogOpacity = 0;
+    let targetSunColor = '#fde047';
+    let targetBirdsOpacity = 1;
+    let targetGrassColor = '#4ade80';
+    let t1Radius = 20, t1Color = '#15803d';
+    let t2Radius = 28, t2Color = '#166534';
+    let t3Radius = 16, t3Color = '#15803d';
+
+    if (score < 4.0) {
+        healthBadge.innerText = 'Healthy';
+        healthBadge.style.color = 'var(--color-success)';
+        healthBadge.style.borderColor = 'var(--color-success)';
+        healthBadge.style.backgroundColor = 'rgba(154, 219, 165, 0.1)';
+        statusText.innerText = 'Your atmosphere is fresh, and plants are thriving.';
+    } else if (score <= 10.0) {
+        targetSkyColor = '#94a3b8';
+        targetSmogOpacity = 0.35;
+        targetSunColor = '#e2e8f0';
+        targetBirdsOpacity = 0;
+        targetGrassColor = '#a3e635';
+        t1Radius = 12; t1Color = '#854d0e';
+        t2Radius = 20; t2Color = '#166534';
+        t3Radius = 8; t3Color = '#854d0e';
+
+        healthBadge.innerText = 'Moderate';
+        healthBadge.style.color = 'var(--color-accent-terracotta)';
+        healthBadge.style.borderColor = 'var(--color-accent-terracotta)';
+        healthBadge.style.backgroundColor = 'rgba(223, 138, 96, 0.1)';
+        statusText.innerText = 'Moderate emissions. Smog is forming, and smaller trees are starting to dry.';
+    } else {
+        targetSkyColor = '#475569';
+        targetSmogOpacity = 0.75;
+        targetSunColor = '#64748b';
+        targetBirdsOpacity = 0;
+        targetGrassColor = '#78350f';
+        t1Radius = 2; t1Color = '#451a03';
+        t2Radius = 4; t2Color = '#451a03';
+        t3Radius = 2; t3Color = '#451a03';
+
+        healthBadge.innerText = 'Severe';
+        healthBadge.style.color = 'var(--color-danger)';
+        healthBadge.style.borderColor = 'var(--color-danger)';
+        healthBadge.style.backgroundColor = 'rgba(226, 124, 124, 0.1)';
+        statusText.innerText = 'High emissions warning! Acid rain and toxic smog have withered the island ecosystem.';
+    }
+
+    // GSAP-Eased Island Transitions
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof gsap === 'undefined') {
+        sky.setAttribute('fill', targetSkyColor);
+        smog.setAttribute('opacity', targetSmogOpacity);
+        sun.setAttribute('fill', targetSunColor);
+        birds.setAttribute('opacity', targetBirdsOpacity);
+        grass.setAttribute('fill', targetGrassColor);
+        t1.setAttribute('r', t1Radius); t1.setAttribute('fill', t1Color);
+        t2.setAttribute('r', t2Radius); t2.setAttribute('fill', t2Color);
+        t3.setAttribute('r', t3Radius); t3.setAttribute('fill', t3Color);
+    } else {
+        gsap.to(sky, { fill: targetSkyColor, duration: 1.2, ease: "power2.out" });
+        gsap.to(smog, { opacity: targetSmogOpacity, duration: 1.2, ease: "power2.out" });
+        gsap.to(sun, { fill: targetSunColor, duration: 1.2, ease: "power2.out" });
+        gsap.to(birds, { opacity: targetBirdsOpacity, duration: 0.8 });
+        gsap.to(grass, { fill: targetGrassColor, duration: 1.2 });
+        gsap.to(t1, { r: t1Radius, fill: t1Color, duration: 1.2, ease: "back.out(1.5)" });
+        gsap.to(t2, { r: t2Radius, fill: t2Color, duration: 1.2, ease: "back.out(1.5)" });
+        gsap.to(t3, { r: t3Radius, fill: t3Color, duration: 1.2, ease: "back.out(1.5)" });
+    }
+}
+
 // Redraw / Update dashboard displays
 function renderApp() {
     if (!state.isOnboarded) {
-        // If not onboarded, make sure dashboard content is hidden
         document.getElementById('onboarding-section').classList.remove('hidden');
         document.getElementById('dashboard-tab').classList.add('hidden');
         document.getElementById('nav-dashboard').classList.add('active');
@@ -1102,10 +1206,15 @@ function renderApp() {
         tabEl.classList.remove('hidden');
     }
 
-    const totalFootprintVal = (state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste).toFixed(1);
-    document.getElementById('total-carbon-score').innerText = totalFootprintVal;
+    // Total Carbon Score Counter Ticker
+    const totalFootprintVal = parseFloat((state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste).toFixed(1));
+    const totalScoreEl = document.getElementById('total-carbon-score');
+    if (totalScoreEl) {
+        animateStatCounter(totalScoreEl, prevStats.totalFootprint, totalFootprintVal, 1);
+        prevStats.totalFootprint = totalFootprintVal;
+    }
 
-    updateEcoIsland(parseFloat(totalFootprintVal));
+    updateEcoIsland(totalFootprintVal);
 
     const avgRegional = 16.0;
     const percentDiff = Math.abs(((totalFootprintVal - avgRegional) / avgRegional) * 100).toFixed(0);
@@ -1118,14 +1227,34 @@ function renderApp() {
     document.getElementById('carbon-bar-fill').style.width = `${barPercent}%`;
 
     const annualSavings = state.actions.filter(a => a.completed).reduce((sum, a) => sum + a.savings, 0);
-    const weeklySavingsKg = ((annualSavings * 1000) / 52).toFixed(1);
-    document.getElementById('weekly-savings-val').innerText = `${weeklySavingsKg} kg`;
+    
+    // Weekly Savings Ticker
+    const weeklySavingsKg = parseFloat(((annualSavings * 1000) / 52).toFixed(1));
+    const weeklySavingsEl = document.getElementById('weekly-savings-val');
+    if (weeklySavingsEl) {
+        animateStatCounter(weeklySavingsEl, prevStats.weeklySavings, weeklySavingsKg, 1);
+        prevStats.weeklySavings = weeklySavingsKg;
+    }
 
+    // Tree Equivalent Ticker
     const treeEquiv = Math.round((annualSavings * 1000) / 22);
-    document.getElementById('tree-equivalent-val').innerText = `${treeEquiv} trees`;
+    const treeEquivalentEl = document.getElementById('tree-equivalent-val');
+    if (treeEquivalentEl) {
+        animateStatCounter(treeEquivalentEl, prevStats.treeEquivalent, treeEquiv, 0);
+        prevStats.treeEquivalent = treeEquiv;
+    }
 
     document.getElementById('streak-val').innerText = `${state.streak} days`;
-    document.getElementById('points-val').innerText = `${state.xp} XP`;
+    
+    // XP Points Ticker
+    const pointsValEl = document.getElementById('points-val');
+    if (pointsValEl) {
+        animateStatCounter(pointsValEl, prevStats.xpPoints, state.xp, 0);
+        prevStats.xpPoints = state.xp;
+    }
+
+    // Update Visual progress bar
+    updateXPProgressBar(state.xp);
 
     const userXpDisplay = document.getElementById('user-xp-display');
     if (userXpDisplay) {
