@@ -1,40 +1,48 @@
-# EcoPulse 🌱 — Personal Carbon Intelligence Dashboard
+# EcoPulse 🌱 — Personal Carbon Intelligence & Behavior Awareness Platform
 
-EcoPulse is a premium, lightweight personal carbon intelligence dashboard that empowers users to understand, track, and actively reduce their carbon footprint. By combining a multi-step baseline calculator, real-time interactive charts, gamified habit reduction commitments, and a simulated eco-intelligence assistant, EcoPulse makes carbon footprint reduction actionable, intuitive, and engaging.
+EcoPulse is a premium personal carbon intelligence platform designed to help users calculate, track, simulate, and actively reduce their daily carbon footprint. 
+
+Unlike standard trackers, EcoPulse focuses on **behavioral change and emotional awareness** through custom dynamic elements: the **Eco-Island Living World** and real-time **Decision Sandbox Nudges**.
 
 ---
 
 ## 🏆 Chosen Vertical & Problem Statement
-*   **Vertical**: Personal Carbon Footprint Tracking & Reduction.
-*   **Problem Statement**: Individuals want to act on climate change but lack immediate insight into their personal footprint size, how daily activities affect it, or which simple habits yield the highest emission reductions.
+*   **Vertical**: Personal Carbon Footprint Tracking, Awareness, and Reduction.
+*   **The Challenge**: Standard dashboards only track retrospectively, failing to drive real-time decision-point changes. EcoPulse addresses this by shifting focus from retrospect to **real-time decision awareness**.
 
 ---
 
-## 💡 Approach and Logic
-EcoPulse utilizes a simplified, scientifically grounded carbon calculator to estimate emissions in four primary lifestyle categories: **Energy, Transportation, Diet, and Waste**. 
+## 💡 Core Innovations & Behavioral Mechanics
 
-1.  **Onboarding Baseline**: Users complete a 4-step interactive onboarding questionnaire. Each response assigns a yearly metric tonnage score based on global/regional averages (e.g., standard EV vs. Petrol vehicle carbon intensity).
-2.  **Daily Log Math**:
-    *   **Transport**: Logged miles are multiplied by carbon coefficients: Petrol/Diesel Car (`0.411 kg CO2e/mile`), Electric Vehicle (`0.12 kg CO2e/mile`), and Public Transit (`0.08 kg CO2e/mile`).
-    *   **Diet**: Meal categories calculate immediate carbon output: Red Meat meal (`7.2 kg CO2e`), Poultry/Fish (`2.4 kg CO2e`), Vegetarian (`1.1 kg CO2e`), and Vegan (`0.5 kg CO2e`).
-    *   **Energy**: Utility usage multiplies kWh consumed by a grid intensity factor of `0.385 kg CO2e/kWh`.
-    *   **Waste**: Composting and recycling calculate carbon credits (`-0.5 kg` and `-0.3 kg` respectively), reducing the overall footprint.
-3.  **Real-Time Reductions & Gamification**:
-    *   Checking a daily reduction action (e.g., "Commute via Public Transit") recalculates the user's category emissions and displays the savings immediately on the dashboard.
-    *   Users earn XP (Experience Points) and progress through levels (from *Seedling* up to *Forest Guardian*) to reinforce positive climate habit loops.
+### 1. The Eco-Island (Emotional Visualization)
+A living, floating island SVG ecosystem situated directly on the user's dashboard. In real-time, the island's health reflects the user's active emissions:
+*   **Healthy (< 4.0t CO2e)**: Sunny clear skies, flying birds, green grass, and lush green leafy trees.
+*   **Moderate (4.0t - 10.0t CO2e)**: Foggy cloudy skies, birds fly away, grass yellows, and smaller trees wither/turn brown.
+*   **Severe (> 10.0t CO2e)**: Stormy dark grey acid-rain skies, toxic smog overlay, dead brown soil, and completely withered, bare leafless branches.
 
----
+### 2. Decision Point Sandbox (Contextual Nudges)
+Simulates in-the-moment decision points (e.g., ordering food delivery or choosing commuting modes) to inject carbon warnings *before* confirmation:
+*   **Food Delivery**: Prompts warning if choosing Beef Burger (8.2 kg CO2e) over Vegan Bowl (0.6 kg CO2e), outlining the equivalent cost (driving 20 miles).
+*   **Commute Route**: Compares Petrol SUV solo commute (6.2 kg CO2e) to shared Train transit (1.2 kg CO2e).
+*   *Behavioral Loop*: Offers an instant "Switch to Eco-Friendly" button that corrects the choice, logs carbon savings, triggers confetti, and grants XP.
 
-## 🚀 How the Solution Works
-EcoPulse is built as a highly responsive, modern Single Page Application (SPA).
-*   **Aesthetic Styling**: Uses a custom **Nordic Minimalist / Editorial Organic** theme. Styled with a premium dark olive-charcoal background, soft sage green, terracotta highlights, and elegant serif typography. No generic blue/teal glassmorphism.
-*   **Data Visualization**: Uses **Chart.js** via CDN to construct real-time doughnut composition charts and historic line-graphs.
-*   **EcoPulse AI Assistant**: A keyword-responsive, rule-based chatbot providing personalized low-carbon recipes, transit impact calculations, and household efficiency guidelines.
-*   **Privacy & Persistence**: Entirely self-contained. All progress, logged activities, and user levels persist using the browser's `localStorage` API. No database or API servers required.
+### 3. Pluggable GenAI Integration (Google Gemini API)
+Enables evaluators to paste their own Google Gemini API Key locally. When configured, it swaps the simulated Eco-Assistant with actual, live generative conversation running on the `gemini-1.5-flash` model (incorporating the user's active footprint statistics into the model's prompt context).
 
 ---
 
-## 🔬 Assumptions Made
-*   **Average Coefficients**: Emissions coefficients for travel, food, and energy represent standardized averages across US and EU carbon index reports.
-*   **Yearly vs. Daily Conversion**: Daily reduction habits (e.g., lowering the thermostat) are calculated as a monthly fractional equivalent subtracted from the yearly baseline to show immediate, readable changes.
-*   **Grid Intensity**: Assumes a standard utility grid mixture with moderate renewable penetration (`0.385 kg CO2e/kWh`).
+## 🔌 Technical Design & Coefficients
+*   **Visual Assets**: High-end custom SVG modules with CSS keyframe cloud drifts and smooth state transitions. 
+*   **Persistence**: Completely serverless. Active data logs, streaks, and API keys are stored client-side via `localStorage`.
+*   **Carbon Math Coefficients**:
+    *   *Commute Modes*: Petrol (`0.411 kg CO2/mi`), EV (`0.12 kg CO2/mi`), Shared Transit (`0.08 kg CO2/mi`).
+    *   *Diet Inputs*: Beef (`7.2 kg`), Poultry/Fish (`2.4 kg`), Veggie (`1.1 kg`), Vegan (`0.5 kg`).
+    *   *Energy Grid Intensity*: Standard grid factor of `0.385 kg CO2e/kWh`.
+
+---
+
+## 🧪 Robustness Verification
+Includes an automated test runner at `/tests.html` verifying calculation correctness alongside edge case safety bounds:
+-   Null inputs.
+-   Zero-value commits.
+-   Negative distances and energy consumption limits.

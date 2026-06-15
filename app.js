@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAssistant();
     setupSimulator();
     setupChallenge();
+    setupSandbox();
     renderApp();
 });
 
@@ -148,9 +149,7 @@ function setupQuiz() {
             document.getElementById('dashboard-tab').classList.remove('hidden');
             document.getElementById('nav-dashboard').classList.add('active');
             
-            // Celebration Confetti!
             triggerConfetti();
-            
             renderApp();
         }
     });
@@ -462,26 +461,22 @@ function setupSimulator() {
         dietVal.innerText = `${dietSlider.value}% plant-based`;
         tempVal.innerText = `${tempSlider.value}°C reduction`;
 
-        // Calculate dynamic projection savings
         const totalBase = state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste;
         
-        // Commuting impact (baseline difference of 15 miles)
         const transportSavings = (15 - parseFloat(commuteSlider.value)) * 0.411 * 260 / 1000;
-        // Diet impact (baseline difference of 25% plant-based)
         const dietSavings = ((parseFloat(dietSlider.value) - 25) / 100) * 1.5;
-        // Temp impact
         const tempSavings = parseFloat(tempSlider.value) * 0.45;
 
         const projectedScore = Math.max(0.5, totalBase - (transportSavings + dietSavings + tempSavings));
         document.getElementById('simulator-score-display').innerText = projectedScore.toFixed(1);
     };
 
-    [commuteSlider, dietSlider, tempSlider].forEach(slider => {
-        slider.addEventListener('input', updateSimulatorOutput);
-    });
-
-    // Run initial computation
-    setTimeout(updateSimulatorOutput, 200);
+    if (commuteSlider && dietSlider && tempSlider) {
+        [commuteSlider, dietSlider, tempSlider].forEach(slider => {
+            slider.addEventListener('input', updateSimulatorOutput);
+        });
+        setTimeout(updateSimulatorOutput, 200);
+    }
 }
 
 // Challenge of the Day Logic
@@ -498,11 +493,10 @@ function setupChallenge() {
             id: Date.now(),
             category: 'System',
             description: 'Completed Challenge: Carbon-Free Transit Commute',
-            value: -4.5, // Subtract emission savings equivalent
+            value: -4.5,
             date: new Date().toISOString().split('T')[0]
         });
 
-        // Sub from transport baseline
         state.footprint.transport = Math.max(0.1, state.footprint.transport - 0.3);
 
         saveState();
@@ -511,11 +505,193 @@ function setupChallenge() {
     });
 }
 
+// Decision Sandbox Tab (Awareness click moments)
+let sandboxSelection = {
+    meal: 'burger',
+    commute: 'suv'
+};
+
+function setupSandbox() {
+    const burgerCard = document.getElementById('opt-meal-burger');
+    const bowlCard = document.getElementById('opt-meal-bowl');
+    const suvCard = document.getElementById('opt-commute-suv');
+    const trainCard = document.getElementById('opt-commute-train');
+
+    const orderBtn = document.getElementById('nudge-btn-order');
+    const commuteBtn = document.getElementById('nudge-btn-commute');
+
+    // Select Meal Option
+    if (burgerCard && bowlCard) {
+        burgerCard.addEventListener('click', () => {
+            burgerCard.classList.add('selected');
+            bowlCard.classList.remove('selected');
+            sandboxSelection.meal = 'burger';
+        });
+        bowlCard.addEventListener('click', () => {
+            bowlCard.classList.add('selected');
+            burgerCard.classList.remove('selected');
+            sandboxSelection.meal = 'bowl';
+        });
+    }
+
+    // Select Commute Option
+    if (suvCard && trainCard) {
+        suvCard.addEventListener('click', () => {
+            suvCard.classList.add('selected');
+            trainCard.classList.remove('selected');
+            sandboxSelection.commute = 'suv';
+        });
+        trainCard.addEventListener('click', () => {
+            trainCard.classList.add('selected');
+            suvCard.classList.remove('selected');
+            sandboxSelection.commute = 'train';
+        });
+    }
+
+    // Nudge Modals Event Handlers
+    const overlay = document.getElementById('nudge-alert-overlay');
+    const cancelBtn = document.getElementById('nudge-alert-cancel');
+    const changeBtn = document.getElementById('nudge-alert-change');
+
+    let activeNudgeType = ''; // 'meal' or 'commute'
+
+    if (orderBtn) {
+        orderBtn.addEventListener('click', () => {
+            if (sandboxSelection.meal === 'burger') {
+                activeNudgeType = 'meal';
+                showNudgeModal(
+                    'Carbon Warning: High Footprint Dinner Choice!',
+                    'Ordering a Beef Burger with 5-mile courier transit produces <strong>8.2 kg of CO₂e</strong>. Shifting to a local Vegan Buddha Bowl (1-mile walk transit) emits only <strong>0.6 kg</strong>—saving 7.6 kg of carbon (equivalent to charging your phone 950 times!).'
+                );
+            } else {
+                // Confirm eco meal directly
+                confirmEcoDecision('meal');
+            }
+        });
+    }
+
+    if (commuteBtn) {
+        commuteBtn.addEventListener('click', () => {
+            if (sandboxSelection.commute === 'suv') {
+                activeNudgeType = 'commute';
+                showNudgeModal(
+                    'Carbon Warning: Solo SUV Commute!',
+                    'Driving a solo Petrol SUV for 15 miles emits <strong>6.2 kg of CO₂e</strong>. Shifting to the shared Electric Metro Train emits only <strong>1.2 kg</strong>—saving 5.0 kg of carbon (equivalent to planting a tree seedling!).'
+                );
+            } else {
+                // Confirm eco commute directly
+                confirmEcoDecision('commute');
+            }
+        });
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            // Proceed with original choice
+            overlay.classList.add('hidden');
+            logCarbonDecision(activeNudgeType, false);
+        });
+    }
+
+    if (changeBtn) {
+        changeBtn.addEventListener('click', () => {
+            // Nudged! Switch to eco-friendly option
+            overlay.classList.add('hidden');
+            if (activeNudgeType === 'meal') {
+                if (bowlCard) bowlCard.click();
+            } else {
+                if (trainCard) trainCard.click();
+            }
+            confirmEcoDecision(activeNudgeType);
+        });
+    }
+}
+
+function showNudgeModal(title, text) {
+    const overlay = document.getElementById('nudge-alert-overlay');
+    const titleEl = document.getElementById('nudge-alert-title');
+    const textEl = document.getElementById('nudge-alert-text');
+    
+    if (overlay && titleEl && textEl) {
+        titleEl.innerHTML = title;
+        textEl.innerHTML = text;
+        overlay.classList.remove('hidden');
+    }
+}
+
+function confirmEcoDecision(type) {
+    triggerConfetti();
+    logCarbonDecision(type, true);
+    alert('Green choice confirmed! Emissions logged and +30 Eco Points (XP) awarded.');
+}
+
+function logCarbonDecision(type, isEco) {
+    if (type === 'meal') {
+        const val = isEco ? 0.6 : 8.2;
+        const desc = isEco ? 'Buddha Bowl order (Eco-Nudged)' : 'Beef Burger dinner order';
+        state.logs.unshift({
+            id: Date.now(),
+            category: 'diet',
+            description: desc,
+            value: val,
+            date: new Date().toISOString().split('T')[0]
+        });
+        state.xp += isEco ? 30 : 10;
+        state.footprint.diet = Math.max(0.1, state.footprint.diet + (isEco ? -0.1 : 0.4));
+    } else {
+        const val = isEco ? 1.2 : 6.2;
+        const desc = isEco ? 'Metro train commute (Eco-Nudged)' : 'Solo SUV drive commute';
+        state.logs.unshift({
+            id: Date.now(),
+            category: 'transport',
+            description: desc,
+            value: val,
+            date: new Date().toISOString().split('T')[0]
+        });
+        state.xp += isEco ? 40 : 10;
+        state.footprint.transport = Math.max(0.1, state.footprint.transport + (isEco ? -0.15 : 0.3));
+    }
+    saveState();
+    renderApp();
+}
+
 // AI Assistant / chatbot logic
 function setupAssistant() {
     const form = document.getElementById('chat-input-form');
     const input = document.getElementById('chat-user-input');
     const chips = document.querySelectorAll('.chip-btn');
+
+    const saveKeyBtn = document.getElementById('save-gemini-key-btn');
+    const clearKeyBtn = document.getElementById('clear-gemini-key-btn');
+    const keyInput = document.getElementById('gemini-key-input');
+    const statusEl = document.getElementById('gemini-status');
+
+    // Load API Key
+    const savedKey = localStorage.getItem('ecopulse_gemini_key');
+    if (savedKey) {
+        if (keyInput) keyInput.value = savedKey;
+        if (statusEl) statusEl.innerText = 'Mode: Gemini API Active';
+    }
+
+    if (saveKeyBtn && keyInput) {
+        saveKeyBtn.addEventListener('click', () => {
+            const val = keyInput.value.trim();
+            if (val) {
+                localStorage.setItem('ecopulse_gemini_key', val);
+                if (statusEl) statusEl.innerText = 'Mode: Gemini API Active';
+                alert('API Key saved securely. Conversational intelligence activated.');
+            }
+        });
+    }
+
+    if (clearKeyBtn && keyInput) {
+        clearKeyBtn.addEventListener('click', () => {
+            localStorage.removeItem('ecopulse_gemini_key');
+            keyInput.value = '';
+            if (statusEl) statusEl.innerText = 'Mode: Simulated';
+            alert('Gemini key cleared. Swapping to offline simulation mode.');
+        });
+    }
 
     form.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -546,14 +722,65 @@ function handleUserMessage(msg) {
     
     container.scrollTop = container.scrollHeight;
 
-    setTimeout(() => {
-        const reply = getAssistantResponse(msg.toLowerCase());
-        const assistantDiv = document.createElement('div');
-        assistantDiv.className = 'message assistant-msg';
-        assistantDiv.innerHTML = `<p>${reply}</p>`;
-        container.appendChild(assistantDiv);
-        container.scrollTop = container.scrollHeight;
-    }, 450);
+    // Show indicator
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'message assistant-msg typing-msg';
+    typingIndicator.innerHTML = `<p>Thinking...</p>`;
+    container.appendChild(typingIndicator);
+    container.scrollTop = container.scrollHeight;
+
+    const apiKey = localStorage.getItem('ecopulse_gemini_key');
+
+    if (apiKey) {
+        // Trigger live Gemini API call
+        const score = (state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste).toFixed(1);
+        const requestPayload = {
+            contents: [{
+                parts: [{
+                    text: `You are EcoPulse Assistant, a personal carbon intelligence coach. The user currently emits ${score} tons of CO2e per year. Answer this ecological question concisely using Markdown: "${msg}"`
+                }]
+            }]
+        };
+
+        fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestPayload)
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('API Request Failed');
+            return res.json();
+        })
+        .then(data => {
+            typingIndicator.remove();
+            const reply = data.candidates[0].content.parts[0].text;
+            
+            const assistantDiv = document.createElement('div');
+            assistantDiv.className = 'message assistant-msg';
+            assistantDiv.innerHTML = `<p>${reply.replace(/\n/g, '<br>')}</p>`;
+            container.appendChild(assistantDiv);
+            container.scrollTop = container.scrollHeight;
+        })
+        .catch(err => {
+            console.error(err);
+            typingIndicator.remove();
+            fallbackRuleResponse(msg, container);
+        });
+    } else {
+        setTimeout(() => {
+            typingIndicator.remove();
+            fallbackRuleResponse(msg, container);
+        }, 600);
+    }
+}
+
+function fallbackRuleResponse(msg, container) {
+    const reply = getAssistantResponse(msg.toLowerCase());
+    const assistantDiv = document.createElement('div');
+    assistantDiv.className = 'message assistant-msg';
+    assistantDiv.innerHTML = `<p>${reply}</p>`;
+    container.appendChild(assistantDiv);
+    container.scrollTop = container.scrollHeight;
 }
 
 function getAssistantResponse(query) {
@@ -591,6 +818,72 @@ function getAssistantResponse(query) {
     return `🌱 I'm your eco-assistant! You can ask me details about diet, utility calculations, transport footprints, or our badges. Try asking: *'Suggest some diet recipes'* or *'How can I save transport emissions?'*`;
 }
 
+// Update the dynamic Eco-Island SVG visualization based on total carbon emissions
+function updateEcoIsland(score) {
+    const sky = document.getElementById('island-sky');
+    const smog = document.getElementById('island-smog');
+    const sun = document.getElementById('island-sun');
+    const birds = document.getElementById('birds-group');
+    const grass = document.getElementById('island-grass');
+    const t1 = document.getElementById('tree1-leaves');
+    const t2 = document.getElementById('tree2-leaves');
+    const t3 = document.getElementById('tree3-leaves');
+    const statusText = document.getElementById('island-status-desc');
+    const healthBadge = document.getElementById('island-health-badge');
+
+    if (!sky || !smog || !sun || !birds || !grass || !t1 || !t2 || !t3 || !statusText || !healthBadge) return;
+
+    if (score < 4.0) {
+        // HEALTHY STATE
+        sky.setAttribute('fill', '#a4c6df'); // sky-blue
+        smog.setAttribute('opacity', '0');
+        sun.setAttribute('fill', '#fde047'); // bright yellow
+        birds.setAttribute('opacity', '1');
+        grass.setAttribute('fill', '#4ade80'); // bright green grass
+        t1.setAttribute('r', '20'); t1.setAttribute('fill', '#15803d');
+        t2.setAttribute('r', '28'); t2.setAttribute('fill', '#166534');
+        t3.setAttribute('r', '16'); t3.setAttribute('fill', '#15803d');
+        
+        healthBadge.innerText = 'Healthy';
+        healthBadge.style.color = 'var(--color-success)';
+        healthBadge.style.borderColor = 'var(--color-success)';
+        healthBadge.style.backgroundColor = 'rgba(154, 219, 165, 0.1)';
+        statusText.innerText = 'Your atmosphere is fresh, and plants are thriving.';
+    } else if (score <= 10.0) {
+        // MODERATE STATE
+        sky.setAttribute('fill', '#94a3b8'); // greyish slate
+        smog.setAttribute('opacity', '0.35'); // slight smog
+        sun.setAttribute('fill', '#e2e8f0'); // pale yellow sun
+        birds.setAttribute('opacity', '0'); // birds flee
+        grass.setAttribute('fill', '#a3e635'); // yellowish-green grass
+        t1.setAttribute('r', '12'); t1.setAttribute('fill', '#854d0e'); // brownish
+        t2.setAttribute('r', '20'); t2.setAttribute('fill', '#166534'); // moderate foliage
+        t3.setAttribute('r', '8'); t3.setAttribute('fill', '#854d0e');
+        
+        healthBadge.innerText = 'Moderate';
+        healthBadge.style.color = 'var(--color-accent-terracotta)';
+        healthBadge.style.borderColor = 'var(--color-accent-terracotta)';
+        healthBadge.style.backgroundColor = 'rgba(223, 138, 96, 0.1)';
+        statusText.innerText = 'Moderate emissions. Smog is forming, and smaller trees are starting to dry.';
+    } else {
+        // CRITICAL STATE
+        sky.setAttribute('fill', '#475569'); // dark slate stormy
+        smog.setAttribute('opacity', '0.75'); // heavy smog overlay
+        sun.setAttribute('fill', '#64748b'); // blocked sun
+        birds.setAttribute('opacity', '0');
+        grass.setAttribute('fill', '#78350f'); // dry brown dirt soil
+        t1.setAttribute('r', '2'); t1.setAttribute('fill', '#451a03'); // withered branches
+        t2.setAttribute('r', '4'); t2.setAttribute('fill', '#451a03');
+        t3.setAttribute('r', '2'); t3.setAttribute('fill', '#451a03');
+        
+        healthBadge.innerText = 'Severe';
+        healthBadge.style.color = 'var(--color-danger)';
+        healthBadge.style.borderColor = 'var(--color-danger)';
+        healthBadge.style.backgroundColor = 'rgba(226, 124, 124, 0.1)';
+        statusText.innerText = 'High emissions warning! Acid rain and toxic smog have withered the island ecosystem.';
+    }
+}
+
 // Redraw / Update dashboard displays
 function renderApp() {
     if (!state.isOnboarded) {
@@ -608,6 +901,9 @@ function renderApp() {
 
     const totalFootprintVal = (state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste).toFixed(1);
     document.getElementById('total-carbon-score').innerText = totalFootprintVal;
+
+    // Update Living World Eco-Island
+    updateEcoIsland(parseFloat(totalFootprintVal));
 
     const avgRegional = 16.0;
     const percentDiff = Math.abs(((totalFootprintVal - avgRegional) / avgRegional) * 100).toFixed(0);
@@ -635,12 +931,12 @@ function renderApp() {
         userXpDisplay.innerText = `${state.xp} XP`;
     }
 
-    // Dynamic Leaderboard Sorting
+    // Dynamic Floor Challenge Leaderboard Sorting
     const leaderboardItems = [
-        { name: 'Sarah K. (Forest Guardian)', xp: 1820, avatar: '🦊', currentUser: false },
-        { name: 'Marcus L. (Oak Tree)', xp: 1450, avatar: '🦉', currentUser: false },
-        { name: 'You', xp: state.xp, avatar: '🌱', currentUser: true },
-        { name: 'Elena R. (Sprout)', xp: 90, avatar: '🐼', currentUser: false }
+        { name: 'Floor 3 (Forest Guardians)', xp: 3850, avatar: '🏢', currentUser: false },
+        { name: 'Floor 2 (Your Floor)', xp: state.xp, avatar: '🏫', currentUser: true },
+        { name: 'Floor 1 (Seedlings)', xp: 480, avatar: '🏢', currentUser: false },
+        { name: 'Floor 4 (Sprouts)', xp: 150, avatar: '🏢', currentUser: false }
     ];
 
     leaderboardItems.sort((a, b) => b.xp - a.xp);

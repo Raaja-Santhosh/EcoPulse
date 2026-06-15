@@ -24,6 +24,7 @@
         <nav class="nav-links">
             <button class="nav-btn active" data-tab="dashboard-tab" id="nav-dashboard">Dashboard</button>
             <button class="nav-btn" data-tab="actions-tab" id="nav-actions">Action Center</button>
+            <button class="nav-btn" data-tab="nudges-tab" id="nav-nudges">Decision Sandbox</button>
             <button class="nav-btn" data-tab="tracker-tab" id="nav-tracker">Activity Log</button>
             <button class="nav-btn" data-tab="assistant-tab" id="nav-assistant">Eco-Assistant</button>
         </nav>
@@ -174,6 +175,64 @@
                     </div>
                 </div>
 
+                <!-- ECO-ISLAND VISUAL WORLD (AWARENESS MOMENT) -->
+                <div class="card island-card">
+                    <div class="island-card-header">
+                        <h3>Your Eco-Island</h3>
+                        <span class="island-badge" id="island-health-badge">Healthy</span>
+                    </div>
+                    <p class="section-subtitle" style="margin-bottom: 1rem;">This living ecosystem visually responds to your footprint trend. Complete actions to clear skies and sprout trees!</p>
+                    
+                    <div class="island-svg-container">
+                        <svg id="eco-island-svg" viewBox="0 0 400 250" width="100%" height="100%">
+                            <!-- Sky background -->
+                            <rect id="island-sky" x="0" y="0" width="400" height="200" fill="#a4c6df" transition="fill 0.8s"></rect>
+                            
+                            <!-- Smog Overlay -->
+                            <rect id="island-smog" x="0" y="0" width="400" height="200" fill="#665b53" opacity="0" transition="opacity 0.8s"></rect>
+
+                            <!-- Sun / Moon -->
+                            <circle id="island-sun" cx="300" cy="50" r="22" fill="#fde047" transition="fill 0.8s"></circle>
+
+                            <!-- Clouds -->
+                            <g id="cloud-group">
+                                <path class="cloud-path" d="M 50,80 A 15,15 0 0,1 80,80 A 20,20 0 0,1 110,80 A 15,15 0 0,1 120,90 L 40,90 Z" fill="#ffffff" opacity="0.85"></path>
+                                <path class="cloud-path" d="M 220,60 A 12,12 0 0,1 240,60 A 18,18 0 0,1 270,60 A 12,12 0 0,1 280,70 L 210,70 Z" fill="#ffffff" opacity="0.85"></path>
+                            </g>
+
+                            <!-- Flying Birds -->
+                            <g id="birds-group" opacity="1" transition="opacity 0.8s">
+                                <path d="M 80,40 Q 85,35 90,40 Q 95,35 100,40" fill="none" stroke="#2c3327" stroke-width="1.5"></path>
+                                <path d="M 140,30 Q 145,25 150,30 Q 155,25 160,30" fill="none" stroke="#2c3327" stroke-width="1.5"></path>
+                            </g>
+
+                            <!-- Floating Island Base Dirt -->
+                            <path d="M 60,180 L 340,180 Q 350,195 310,210 Q 200,230 90,210 Q 50,195 60,180 Z" fill="#78350f"></path>
+
+                            <!-- Grass Surface -->
+                            <path id="island-grass" d="M 60,180 Q 200,165 340,180 L 345,185 Q 200,172 55,185 Z" fill="#4ade80" transition="fill 0.8s"></path>
+
+                            <!-- Lush Trees (Leaf groups will show/hide dynamically) -->
+                            <g id="trees-group">
+                                <!-- Tree 1 (Left) -->
+                                <rect x="110" y="140" width="8" height="40" fill="#451a03"></rect>
+                                <circle id="tree1-leaves" cx="114" cy="130" r="20" fill="#15803d" transition="fill 0.8s, r 0.8s"></circle>
+                                
+                                <!-- Tree 2 (Center) -->
+                                <rect x="200" y="125" width="10" height="55" fill="#451a03"></rect>
+                                <circle id="tree2-leaves" cx="205" cy="110" r="28" fill="#166534" transition="fill 0.8s, r 0.8s"></circle>
+                                
+                                <!-- Tree 3 (Right) -->
+                                <rect x="280" y="145" width="8" height="35" fill="#451a03"></rect>
+                                <circle id="tree3-leaves" cx="284" cy="135" r="16" fill="#15803d" transition="fill 0.8s, r 0.8s"></circle>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="island-footer">
+                        <span id="island-status-desc">Your atmosphere is fresh, and plants are thriving.</span>
+                    </div>
+                </div>
+
                 <!-- KEY METRICS MINI-GRID -->
                 <div class="metrics-grid">
                     <div class="card mini-card">
@@ -263,34 +322,34 @@
                     </div>
                 </div>
 
-                <!-- COMMUNITY LEADERBOARD -->
+                <!-- COMMUNITY LEADERBOARD (HOSTEL FLOOR MOCKUP) -->
                 <div class="card leaderboard-card">
-                    <h3>Eco community Leaderboard</h3>
-                    <p class="section-subtitle" style="margin-bottom: 1.5rem;">See how you rank against other EcoPulse users.</p>
+                    <h3>Floor Challenge Leaderboard</h3>
+                    <p class="section-subtitle" style="margin-bottom: 1.5rem;">Social accountability: ranking of hostel floors battling to save carbon.</p>
                     <div class="leaderboard-list">
                         <div class="leaderboard-item">
                             <span class="rank">#1</span>
-                            <span class="avatar">🦊</span>
-                            <span class="name">Sarah K. (Forest Guardian)</span>
-                            <span class="xp">1,820 XP</span>
-                        </div>
-                        <div class="leaderboard-item">
-                            <span class="rank">#2</span>
-                            <span class="avatar">🦉</span>
-                            <span class="name">Marcus L. (Oak Tree)</span>
-                            <span class="xp">1,450 XP</span>
+                            <span class="avatar">🏢</span>
+                            <span class="name">Floor 3 (Forest Guardians)</span>
+                            <span class="xp">3,850 XP</span>
                         </div>
                         <div class="leaderboard-item current-user">
-                            <span class="rank" id="user-rank-val">#3</span>
-                            <span class="avatar">🌱</span>
-                            <span class="name">You</span>
+                            <span class="rank" id="user-rank-val">#2</span>
+                            <span class="avatar">🏫</span>
+                            <span class="name">Floor 2 (Your Floor)</span>
                             <span class="xp" id="user-xp-display">0 XP</span>
                         </div>
                         <div class="leaderboard-item">
+                            <span class="rank">#3</span>
+                            <span class="avatar">🏢</span>
+                            <span class="name">Floor 1 (Seedlings)</span>
+                            <span class="xp">480 XP</span>
+                        </div>
+                        <div class="leaderboard-item">
                             <span class="rank">#4</span>
-                            <span class="avatar">🐼</span>
-                            <span class="name">Elena R. (Sprout)</span>
-                            <span class="xp">90 XP</span>
+                            <span class="avatar">🏢</span>
+                            <span class="name">Floor 4 (Sprouts)</span>
+                            <span class="xp">150 XP</span>
                         </div>
                     </div>
                 </div>
@@ -322,6 +381,79 @@
 
             <div class="actions-grid" id="actions-container">
                 <!-- Action cards will be dynamically loaded by app.js -->
+            </div>
+        </section>
+
+        <!-- DECISION SANDBOX TAB (AWARENESS CLICK MOMENT) -->
+        <section id="nudges-tab" class="tab-content hidden">
+            <div class="section-header">
+                <div>
+                    <h2 class="editorial-title">Decision Point Sandbox</h2>
+                    <p class="section-subtitle">Simulate real-life choices to witness immediate context-nudges before confirming carbon-heavy actions.</p>
+                </div>
+            </div>
+
+            <div class="nudges-grid">
+                <!-- SCENARIO 1: DINNER ORDER -->
+                <div class="card nudge-scenario-card">
+                    <div class="nudge-scenario-header">
+                        <span class="scenario-icon">🍔</span>
+                        <h4>Scenario 1: Dinner Delivery Options</h4>
+                    </div>
+                    <p class="scenario-desc">Before confirming your dinner order, compare how meal choice and delivery distance shape the emission output.</p>
+                    
+                    <div class="nudge-option-selector">
+                        <div class="nudge-opt-card selected" id="opt-meal-burger" data-value="8.2">
+                            <h5>Beef Burger + Fries</h5>
+                            <p>5-mile bike courier delivery</p>
+                            <span class="nudge-opt-cost">8.2 kg CO₂e</span>
+                        </div>
+                        <div class="nudge-opt-card" id="opt-meal-bowl" data-value="0.6">
+                            <h5>Vegan Buddha Bowl</h5>
+                            <p>1-mile local walking delivery</p>
+                            <span class="nudge-opt-cost">0.6 kg CO₂e</span>
+                        </div>
+                    </div>
+
+                    <button class="primary-btn full-width" id="nudge-btn-order">Simulate Order Confirmation</button>
+                </div>
+
+                <!-- SCENARIO 2: COMMUTE DECISION -->
+                <div class="card nudge-scenario-card">
+                    <div class="nudge-scenario-header">
+                        <span class="scenario-icon">🚗</span>
+                        <h4>Scenario 2: Morning Commute Mode</h4>
+                    </div>
+                    <p class="scenario-desc">Simulate a daily office commute choice to analyze the direct carbon impact differences.</p>
+                    
+                    <div class="nudge-option-selector">
+                        <div class="nudge-opt-card selected" id="opt-commute-suv" data-value="6.2">
+                            <h5>Drive Petrol SUV</h5>
+                            <p>15 miles solo commute</p>
+                            <span class="nudge-opt-cost">6.2 kg CO₂e</span>
+                        </div>
+                        <div class="nudge-opt-card" id="opt-commute-train" data-value="1.2">
+                            <h5>Take Electric Metro Train</h5>
+                            <p>Shared electric mass transit</p>
+                            <span class="nudge-opt-cost">1.2 kg CO₂e</span>
+                        </div>
+                    </div>
+
+                    <button class="primary-btn full-width" id="nudge-btn-commute">Verify Commute Choice</button>
+                </div>
+            </div>
+
+            <!-- CUSTOM INTERSTITIAL MODAL/ALERT POP-UP -->
+            <div id="nudge-alert-overlay" class="nudge-alert-overlay hidden">
+                <div class="card nudge-alert-box">
+                    <span class="nudge-alert-icon">⚠️</span>
+                    <h3 id="nudge-alert-title">Carbon Warning!</h3>
+                    <p id="nudge-alert-text">Warning details go here.</p>
+                    <div class="nudge-alert-buttons">
+                        <button class="secondary-btn" id="nudge-alert-cancel">Proceed anyway</button>
+                        <button class="primary-btn" id="nudge-alert-change">Switch to eco-friendly</button>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -368,6 +500,20 @@
         <!-- ASSISTANT TAB -->
         <section id="assistant-tab" class="tab-content hidden">
             <div class="assistant-layout">
+                <!-- GEMINI API SETUP DRAWER (GENAI PLUGGABLE) -->
+                <div class="card config-card" style="margin-bottom: 1.5rem;">
+                    <div class="config-header">
+                        <h4>🔌 Pluggable Gemini API Integration</h4>
+                        <span class="config-status" id="gemini-status">Mode: Simulated</span>
+                    </div>
+                    <p class="section-subtitle" style="margin-bottom: 1rem; font-size: 0.85rem;">Input your Google Gemini API Key to activate actual, un-simulated AI conversations. Evaluators can securely enter their key locally.</p>
+                    <div class="config-row">
+                        <input type="password" id="gemini-key-input" placeholder="Enter Gemini API Key (AI Key)">
+                        <button class="primary-btn" id="save-gemini-key-btn">Save Key</button>
+                        <button class="secondary-btn" id="clear-gemini-key-btn">Clear</button>
+                    </div>
+                </div>
+
                 <!-- ASSISTANT CHAT WINDOW -->
                 <div class="card chat-card-full">
                     <div class="chat-header">
