@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -25,9 +27,11 @@
             <button class="nav-btn" data-tab="tracker-tab" id="nav-tracker">Activity Log</button>
             <button class="nav-btn" data-tab="assistant-tab" id="nav-assistant">Eco-Assistant</button>
         </nav>
-        <div class="user-badge" id="user-badge-level">
-            <span class="badge-icon">⭐</span>
-            <span class="badge-text" id="user-level">Level 1: Seedling</span>
+        <div class="header-right">
+            <div class="user-badge" id="user-badge-level">
+                <span class="badge-icon">⭐</span>
+                <span class="badge-text" id="user-level">Level 1: Seedling</span>
+            </div>
         </div>
     </header>
 
@@ -202,11 +206,92 @@
                     </div>
                 </div>
 
+                <!-- DAILY CHALLENGE BANNER -->
+                <div class="card challenge-banner-card">
+                    <div class="challenge-header">
+                        <span class="challenge-badge">Eco Challenge of the Day</span>
+                        <span class="challenge-timer" id="challenge-timer-display">Ends in 03h 42m</span>
+                    </div>
+                    <h3>Commute Carbon-Free Today</h3>
+                    <p>Walk, cycle, or use electric transit to get around. Completing this unlocks a special "Eco Commuter" badge and earns +150 XP points!</p>
+                    <button class="primary-btn" id="claim-challenge-btn">I did this today!</button>
+                </div>
+
+                <!-- INTERACTIVE SIMULATOR CARD -->
+                <div class="card simulator-card">
+                    <h3>Carbon Reduction Simulator</h3>
+                    <p class="section-subtitle" style="margin-bottom: 1.5rem;">Drag sliders to forecast how lifestyle adjustments will reduce your yearly carbon footprint.</p>
+                    
+                    <div class="slider-group">
+                        <div class="slider-label-row">
+                            <span>Car Commute Distance</span>
+                            <span id="slider-val-commute">15 miles/day</span>
+                        </div>
+                        <input type="range" id="slider-commute" min="0" max="60" value="15" class="custom-slider">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-label-row">
+                            <span>Plant-Based Diet Ratio</span>
+                            <span id="slider-val-diet">25% plant-based</span>
+                        </div>
+                        <input type="range" id="slider-diet" min="0" max="100" value="25" class="custom-slider">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-label-row">
+                            <span>Utility Thermostat offset</span>
+                            <span id="slider-val-temp">0°C reduction</span>
+                        </div>
+                        <input type="range" id="slider-temp" min="0" max="5" value="0" class="custom-slider">
+                    </div>
+
+                    <div class="simulator-output">
+                        <span class="output-label">Forecasted Footprint</span>
+                        <div class="output-value-container">
+                            <span class="output-value" id="simulator-score-display">0.0</span>
+                            <span class="output-unit">t CO₂e/yr</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- VISUAL ANALYTICS -->
                 <div class="card chart-card">
                     <h3>Footprint Composition</h3>
                     <div class="chart-wrapper">
                         <canvas id="composition-chart" aria-label="Carbon footprint composition chart" role="img"></canvas>
+                    </div>
+                </div>
+
+                <!-- COMMUNITY LEADERBOARD -->
+                <div class="card leaderboard-card">
+                    <h3>Eco community Leaderboard</h3>
+                    <p class="section-subtitle" style="margin-bottom: 1.5rem;">See how you rank against other EcoPulse users.</p>
+                    <div class="leaderboard-list">
+                        <div class="leaderboard-item">
+                            <span class="rank">#1</span>
+                            <span class="avatar">🦊</span>
+                            <span class="name">Sarah K. (Forest Guardian)</span>
+                            <span class="xp">1,820 XP</span>
+                        </div>
+                        <div class="leaderboard-item">
+                            <span class="rank">#2</span>
+                            <span class="avatar">🦉</span>
+                            <span class="name">Marcus L. (Oak Tree)</span>
+                            <span class="xp">1,450 XP</span>
+                        </div>
+                        <div class="leaderboard-item current-user">
+                            <span class="rank" id="user-rank-val">#3</span>
+                            <span class="avatar">🌱</span>
+                            <span class="name">You</span>
+                            <span class="xp" id="user-xp-display">0 XP</span>
+                        </div>
+                        <div class="leaderboard-item">
+                            <span class="rank">#4</span>
+                            <span class="avatar">🐼</span>
+                            <span class="name">Elena R. (Sprout)</span>
+                            <span class="xp">90 XP</span>
+                        </div>
                     </div>
                 </div>
 

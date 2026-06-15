@@ -20,7 +20,8 @@ let state = {
     logs: [],
     xp: 0,
     streak: 0,
-    lastLogDate: null
+    lastLogDate: null,
+    challengeCompleted: false
 };
 
 // Global Chart variables
@@ -35,6 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupLogForm();
     setupActions();
     setupAssistant();
+    setupSimulator();
+    setupChallenge();
     renderApp();
 });
 
@@ -72,7 +75,6 @@ function setupNavigation() {
             if (activeTab) {
                 activeTab.classList.remove('hidden');
                 if (btn.dataset.tab === 'dashboard-tab') {
-                    // Force chart redraw
                     initCharts();
                 }
             }
@@ -146,6 +148,9 @@ function setupQuiz() {
             document.getElementById('dashboard-tab').classList.remove('hidden');
             document.getElementById('nav-dashboard').classList.add('active');
             
+            // Celebration Confetti!
+            triggerConfetti();
+            
             renderApp();
         }
     });
@@ -164,12 +169,23 @@ function setupQuiz() {
     });
 }
 
+// Confetti Utility
+function triggerConfetti() {
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: ['#c2d8b4', '#df8a60', '#e8ddc5']
+        });
+    }
+}
+
 // Setup Daily reduction actions
 function setupActions() {
     const container = document.getElementById('actions-container');
     const filterButtons = document.querySelectorAll('.filter-btn');
 
-    // Filter implementation
     filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             filterButtons.forEach(b => b.classList.remove('active'));
@@ -209,7 +225,6 @@ function renderActions(filter = 'all') {
             </div>
         `;
 
-        // Check button event listener
         const btn = card.querySelector('.action-check-btn');
         if (act.completed) {
             btn.style.backgroundColor = 'var(--color-success)';
@@ -232,9 +247,9 @@ function toggleAction(id) {
 
         if (act.completed) {
             state.xp += act.xp;
-            // Subtract temporary footprint reduction
-            state.footprint[act.category] = Math.max(0, state.footprint[act.category] - (act.savings / 12)); // Monthly savings fraction
+            state.footprint[act.category] = Math.max(0, state.footprint[act.category] - (act.savings / 12));
             state.streak = Math.min(30, state.streak + 1);
+            triggerConfetti();
         } else {
             state.xp = Math.max(0, state.xp - act.xp);
             state.footprint[act.category] = state.footprint[act.category] + (act.savings / 12);
@@ -252,7 +267,6 @@ function setupLogForm() {
     const logForm = document.getElementById('daily-log-form');
     const clearBtn = document.getElementById('clear-logs-btn');
     
-    // Set date input to today
     document.getElementById('log-date').value = new Date().toISOString().split('T')[0];
 
     const fields = {
@@ -289,15 +303,12 @@ function setupLogForm() {
         `
     };
 
-    // Handle change event
     categorySelect.addEventListener('change', () => {
         dynamicField.innerHTML = fields[categorySelect.value] || '';
     });
 
-    // Initialize with transport fields
     dynamicField.innerHTML = fields.transport;
 
-    // Handle form submit
     logForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
@@ -311,7 +322,7 @@ function setupLogForm() {
 
         if (category === 'transport') {
             if (subType === 'petrol') {
-                calculatedEmissions = rawValue * 0.411; // kg CO2 per mile
+                calculatedEmissions = rawValue * 0.411;
                 desc = `Drove petrol car (${rawValue} mi)`;
             } else if (subType === 'electric') {
                 calculatedEmissions = rawValue * 0.12; 
@@ -322,7 +333,7 @@ function setupLogForm() {
             }
         } else if (category === 'diet') {
             if (subType === 'beef') {
-                calculatedEmissions = 7.2; // kg CO2
+                calculatedEmissions = 7.2;
                 desc = `Red meat meal (Beef/Pork)`;
             } else if (subType === 'chicken') {
                 calculatedEmissions = 2.4;
@@ -335,11 +346,11 @@ function setupLogForm() {
                 desc = `Vegan plant-based meal`;
             }
         } else if (category === 'energy') {
-            calculatedEmissions = rawValue * 0.385; // kg CO2 per kWh
+            calculatedEmissions = rawValue * 0.385;
             desc = `Utility Electricity (${rawValue} kWh)`;
         } else if (category === 'waste') {
             if (subType === 'compost') {
-                calculatedEmissions = -0.5; // Saving credit
+                calculatedEmissions = -0.5;
                 desc = `Composted organic waste`;
             } else if (subType === 'recycle') {
                 calculatedEmissions = -0.3;
@@ -350,7 +361,6 @@ function setupLogForm() {
             }
         }
 
-        // Add Log Item
         state.logs.unshift({
             id: Date.now(),
             category,
@@ -359,20 +369,17 @@ function setupLogForm() {
             date
         });
 
-        // Add XP for logging
         state.xp += 10;
         
-        // Save and re-render
         saveState();
+        triggerConfetti();
         renderApp();
         
-        // Reset form inputs (keep date)
         if (document.getElementById('log-input-value')) {
             document.getElementById('log-input-value').value = '';
         }
     });
 
-    // Clear Logs
     clearBtn.addEventListener('click', () => {
         if (confirm('Are you sure you want to clear your entire log history?')) {
             state.logs = state.logs.filter(l => l.isSystem);
@@ -440,6 +447,70 @@ function deleteLog(id) {
     }
 }
 
+// Carbon Reduction Simulator Logic
+function setupSimulator() {
+    const commuteSlider = document.getElementById('slider-commute');
+    const dietSlider = document.getElementById('slider-diet');
+    const tempSlider = document.getElementById('slider-temp');
+
+    const commuteVal = document.getElementById('slider-val-commute');
+    const dietVal = document.getElementById('slider-val-diet');
+    const tempVal = document.getElementById('slider-val-temp');
+
+    const updateSimulatorOutput = () => {
+        commuteVal.innerText = `${commuteSlider.value} miles/day`;
+        dietVal.innerText = `${dietSlider.value}% plant-based`;
+        tempVal.innerText = `${tempSlider.value}°C reduction`;
+
+        // Calculate dynamic projection savings
+        const totalBase = state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste;
+        
+        // Commuting impact (baseline difference of 15 miles)
+        const transportSavings = (15 - parseFloat(commuteSlider.value)) * 0.411 * 260 / 1000;
+        // Diet impact (baseline difference of 25% plant-based)
+        const dietSavings = ((parseFloat(dietSlider.value) - 25) / 100) * 1.5;
+        // Temp impact
+        const tempSavings = parseFloat(tempSlider.value) * 0.45;
+
+        const projectedScore = Math.max(0.5, totalBase - (transportSavings + dietSavings + tempSavings));
+        document.getElementById('simulator-score-display').innerText = projectedScore.toFixed(1);
+    };
+
+    [commuteSlider, dietSlider, tempSlider].forEach(slider => {
+        slider.addEventListener('input', updateSimulatorOutput);
+    });
+
+    // Run initial computation
+    setTimeout(updateSimulatorOutput, 200);
+}
+
+// Challenge of the Day Logic
+function setupChallenge() {
+    const claimBtn = document.getElementById('claim-challenge-btn');
+    if (!claimBtn) return;
+
+    claimBtn.addEventListener('click', () => {
+        if (state.challengeCompleted) return;
+
+        state.xp += 150;
+        state.challengeCompleted = true;
+        state.logs.push({
+            id: Date.now(),
+            category: 'System',
+            description: 'Completed Challenge: Carbon-Free Transit Commute',
+            value: -4.5, // Subtract emission savings equivalent
+            date: new Date().toISOString().split('T')[0]
+        });
+
+        // Sub from transport baseline
+        state.footprint.transport = Math.max(0.1, state.footprint.transport - 0.3);
+
+        saveState();
+        triggerConfetti();
+        renderApp();
+    });
+}
+
 // AI Assistant / chatbot logic
 function setupAssistant() {
     const form = document.getElementById('chat-input-form');
@@ -466,16 +537,13 @@ function handleUserMessage(msg) {
     const container = document.getElementById('chat-messages-container');
     if (!container) return;
 
-    // Append User Message
     const userDiv = document.createElement('div');
     userDiv.className = 'message user-msg';
     userDiv.innerHTML = `<p>${msg}</p>`;
     container.appendChild(userDiv);
     
-    // Auto Scroll
     container.scrollTop = container.scrollHeight;
 
-    // Simulated Assistant typing latency
     setTimeout(() => {
         const reply = getAssistantResponse(msg.toLowerCase());
         const assistantDiv = document.createElement('div');
@@ -532,39 +600,68 @@ function renderApp() {
 
     document.getElementById('onboarding-section').classList.add('hidden');
     
-    // Switch to active tab
     const activeBtn = document.querySelector('.nav-btn.active');
     const activeTabId = activeBtn ? activeBtn.dataset.tab : 'dashboard-tab';
     document.getElementById(activeTabId).classList.remove('hidden');
 
-    // Calculate total carbon footprint
     const totalFootprintVal = (state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste).toFixed(1);
     document.getElementById('total-carbon-score').innerText = totalFootprintVal;
 
-    // Comparison copy
-    const avgRegional = 16.0; // average US/Europe baseline
+    const avgRegional = 16.0;
     const percentDiff = Math.abs(((totalFootprintVal - avgRegional) / avgRegional) * 100).toFixed(0);
     const comparisonText = totalFootprintVal < avgRegional 
         ? `${percentDiff}% lower than regional average (${avgRegional}t)`
         : `${percentDiff}% higher than regional average (${avgRegional}t)`;
     document.getElementById('score-comparison-text').innerText = comparisonText;
 
-    // Fill comparison bar
     const barPercent = Math.min(100, (totalFootprintVal / 20.0) * 100);
     document.getElementById('carbon-bar-fill').style.width = `${barPercent}%`;
 
-    // Compute metrics
     const annualSavings = state.actions.filter(a => a.completed).reduce((sum, a) => sum + a.savings, 0);
     const weeklySavingsKg = ((annualSavings * 1000) / 52).toFixed(1);
     document.getElementById('weekly-savings-val').innerText = `${weeklySavingsKg} kg`;
 
-    // Tree equivalence (1 mature tree absorbs ~22kg of CO2 per year)
     const treeEquiv = Math.round((annualSavings * 1000) / 22);
     document.getElementById('tree-equivalent-val').innerText = `${treeEquiv} trees`;
 
-    // Streak and XP
     document.getElementById('streak-val').innerText = `${state.streak} days`;
     document.getElementById('points-val').innerText = `${state.xp} XP`;
+
+    // Leaderboard update
+    const userXpDisplay = document.getElementById('user-xp-display');
+    if (userXpDisplay) {
+        userXpDisplay.innerText = `${state.xp} XP`;
+    }
+
+    // Dynamic Leaderboard Sorting
+    const leaderboardItems = [
+        { name: 'Sarah K. (Forest Guardian)', xp: 1820, avatar: '🦊', currentUser: false },
+        { name: 'Marcus L. (Oak Tree)', xp: 1450, avatar: '🦉', currentUser: false },
+        { name: 'You', xp: state.xp, avatar: '🌱', currentUser: true },
+        { name: 'Elena R. (Sprout)', xp: 90, avatar: '🐼', currentUser: false }
+    ];
+
+    leaderboardItems.sort((a, b) => b.xp - a.xp);
+    const leaderboardList = document.querySelector('.leaderboard-list');
+    if (leaderboardList) {
+        leaderboardList.innerHTML = '';
+        leaderboardItems.forEach((item, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `leaderboard-item ${item.currentUser ? 'current-user' : ''}`;
+            itemDiv.innerHTML = `
+                <span class="rank">#${index + 1}</span>
+                <span class="avatar">${item.avatar}</span>
+                <span class="name">${item.name}</span>
+                <span class="xp">${item.xp.toLocaleString()} XP</span>
+            `;
+            leaderboardList.appendChild(itemDiv);
+            
+            if (item.currentUser) {
+                const rankValEl = document.getElementById('user-rank-val');
+                if (rankValEl) rankValEl.innerText = `#${index + 1}`;
+            }
+        });
+    }
 
     // Level calculator
     let levelName = 'Level 1: Seedling';
@@ -575,29 +672,40 @@ function renderApp() {
     
     document.getElementById('user-level').innerText = levelName;
 
-    // Render Actions and Logs
+    // Challenge Banner Completed Check
+    const claimBtn = document.getElementById('claim-challenge-btn');
+    if (claimBtn) {
+        if (state.challengeCompleted) {
+            claimBtn.innerText = '✓ Challenge Completed!';
+            claimBtn.style.backgroundColor = 'var(--color-success)';
+            claimBtn.style.color = '#131412';
+            claimBtn.setAttribute('disabled', 'true');
+        } else {
+            claimBtn.innerText = 'I did this today!';
+            claimBtn.style.backgroundColor = 'var(--color-accent-sage)';
+            claimBtn.style.color = 'var(--bg-main)';
+            claimBtn.removeAttribute('disabled');
+        }
+    }
+
     const activeFilter = document.querySelector('.filter-btn.active');
     renderActions(activeFilter ? activeFilter.dataset.filter : 'all');
     renderLogHistory();
 
-    // Redraw charts
     initCharts();
 }
 
 // Chart.js Configuration
 function initCharts() {
-    // Check if Chart.js is loaded
     if (typeof Chart === 'undefined') return;
 
     const compositionCanvas = document.getElementById('composition-chart');
     const trendCanvas = document.getElementById('trend-chart');
     if (!compositionCanvas || !trendCanvas) return;
 
-    // Destroy existing charts to reload clean configurations
     if (compositionChart) compositionChart.destroy();
     if (trendChart) trendChart.destroy();
 
-    // 1. Composition Chart (Doughnut)
     const compositionData = [
         state.footprint.energy,
         state.footprint.transport,
@@ -612,10 +720,10 @@ function initCharts() {
             datasets: [{
                 data: compositionData,
                 backgroundColor: [
-                    '#c2d8b4', // Sage Green
-                    '#df8a60', // Terracotta
-                    '#e8ddc5', // Sand
-                    '#79a6d2'  // Soft Blue
+                    '#c2d8b4', 
+                    '#df8a60', 
+                    '#e8ddc5', 
+                    '#79a6d2'  
                 ],
                 borderColor: '#1b1d19',
                 borderWidth: 2
@@ -636,11 +744,7 @@ function initCharts() {
         }
     });
 
-    // 2. Trend Chart (Line)
-    // Create simulated historical points by computing impact of checked actions
     const baseEmissions = state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste;
-    
-    // Show a hypothetical history reduction trend line
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     const trendData = [
         baseEmissions + 2.4, 
