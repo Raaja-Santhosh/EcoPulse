@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupChallenge();
     setupSandbox();
     setupLevelUpModal();
+    setupHomeTab();
     
     // Premium Motion Setup
     setupLenis();
@@ -243,8 +244,8 @@ function setupQuiz() {
                     quizSection.classList.add('hidden');
                     quizSection.style.opacity = '1';
                     quizSection.style.transform = 'none';
-                    document.getElementById('dashboard-tab').classList.remove('hidden');
-                    document.getElementById('nav-dashboard').classList.add('active');
+                    document.getElementById('home-tab').classList.remove('hidden');
+                    document.getElementById('nav-home').classList.add('active');
                     triggerConfetti();
                     renderApp();
                 }
@@ -1337,22 +1338,28 @@ function updateEcoIsland(score) {
 function renderApp() {
     if (!state.isOnboarded) {
         document.getElementById('onboarding-section').classList.remove('hidden');
-        document.getElementById('dashboard-tab').classList.add('hidden');
-        document.getElementById('nav-dashboard').classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('nav-home').classList.add('active');
         return;
     }
 
     document.getElementById('onboarding-section').classList.add('hidden');
     
     const activeBtn = document.querySelector('.nav-btn.active');
-    const activeTabId = activeBtn ? activeBtn.dataset.tab : 'dashboard-tab';
+    const activeTabId = activeBtn ? activeBtn.dataset.tab : 'home-tab';
+    
+    // Hide all tabs first
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
     
     const tabEl = document.getElementById(activeTabId);
     if (tabEl) {
         tabEl.classList.remove('hidden');
+        if (activeTabId === 'dashboard-tab') {
+            initCharts();
+        }
     }
 
-    // Detect level up
     const prevLevelIdx = getLevelIndex(prevStats.xpPoints);
     const currentLevelIdx = getLevelIndex(state.xp);
     if (currentLevelIdx > prevLevelIdx && state.isOnboarded) {
@@ -1786,4 +1793,55 @@ function updateSimEcoIsland(score) {
         gsap.to(t2, { r: t2Radius, fill: t2Color, duration: 0.8, ease: "back.out(1.5)" });
         gsap.to(t3, { r: t3Radius, fill: t3Color, duration: 0.8, ease: "back.out(1.5)" });
     }
+}
+
+// Setup Interactive Informative Home Tab
+function setupHomeTab() {
+    const accordions = document.querySelectorAll('.cause-accordion-item');
+    accordions.forEach(item => {
+        const header = item.querySelector('.accordion-header');
+        header.addEventListener('click', () => {
+            const isActive = item.classList.contains('active');
+            
+            // Close all accordions
+            accordions.forEach(acc => {
+                acc.classList.remove('active');
+                acc.querySelector('.accordion-body').style.maxHeight = null;
+            });
+            
+            // Open clicked accordion if it wasn't active
+            if (!isActive) {
+                item.classList.add('active');
+                const body = item.querySelector('.accordion-body');
+                body.style.maxHeight = body.scrollHeight + "px";
+            }
+        });
+    });
+
+    // Go to Dashboard triggers
+    const toDashboardBtn = document.getElementById('home-to-dashboard-btn');
+    const enterAppBtn = document.getElementById('home-enter-app-btn');
+    
+    const navigateToDashboard = () => {
+        if (!state.isOnboarded) {
+            // Prompt them to do the quiz first
+            const onboardingEl = document.getElementById('onboarding-section');
+            if (onboardingEl) {
+                onboardingEl.scrollIntoView({ behavior: 'smooth' });
+                onboardingEl.classList.add('flash-glow');
+                setTimeout(() => onboardingEl.classList.remove('flash-glow'), 1500);
+            }
+            return;
+        }
+        
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        
+        document.getElementById('nav-dashboard').classList.add('active');
+        document.getElementById('dashboard-tab').classList.remove('hidden');
+        initCharts();
+    };
+
+    if (toDashboardBtn) toDashboardBtn.addEventListener('click', navigateToDashboard);
+    if (enterAppBtn) enterAppBtn.addEventListener('click', navigateToDashboard);
 }

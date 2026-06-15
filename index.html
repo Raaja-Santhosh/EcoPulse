@@ -8,7 +8,7 @@
     <!-- Google Fonts: Playfair (Serif Heading), Outfit (Body Text), Space Mono (Monospace Numbers) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Syne:wght@700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <!-- Three.js (Required by Vanta) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Vanta Fog -->
@@ -168,7 +168,8 @@
                 <span class="logo-text">EcoPulse</span>
             </div>
             <nav class="nav-links">
-                <button class="nav-btn active" data-tab="dashboard-tab" id="nav-dashboard">Dashboard</button>
+                <button class="nav-btn active" data-tab="home-tab" id="nav-home">Home</button>
+                <button class="nav-btn" data-tab="dashboard-tab" id="nav-dashboard">Dashboard</button>
                 <button class="nav-btn" data-tab="actions-tab" id="nav-actions">Action Center</button>
                 <button class="nav-btn" data-tab="nudges-tab" id="nav-nudges">Decision Sandbox</button>
                 <button class="nav-btn" data-tab="tracker-tab" id="nav-tracker">Activity Log</button>
@@ -330,6 +331,188 @@
                 <div class="quiz-nav">
                     <button id="prev-step-btn" class="secondary-btn" disabled>Back</button>
                     <button id="next-step-btn" class="primary-btn" disabled>Continue</button>
+                </div>
+            </section>
+
+            <!-- HOME TAB (INFORMATIVE CURRICULUM) -->
+            <section id="home-tab" class="tab-content">
+                <div class="home-layout">
+                    <!-- Home Hero Banner -->
+                    <div class="home-hero">
+                        <span class="story-tag" style="letter-spacing: 3px;">Welcome to the Pulse</span>
+                        <h2>Understanding Your <span class="italic-highlight">Pulse</span></h2>
+                        <p>A personal guide to carbon literacy. Explore the core definition, key global causes, and how daily decisions shape the planetary future.</p>
+                        <button class="primary-btn large-btn" id="home-to-dashboard-btn">Go to Dashboard →</button>
+                    </div>
+
+                    <!-- Horizontal Scrolling Marquee Ticker -->
+                    <div class="text-marquee-wrapper">
+                        <div class="marquee-content">
+                            <div class="marquee-text"><span>•</span> Learn the footprint basics</div>
+                            <div class="marquee-text"><span>•</span> Understand global warming</div>
+                            <div class="marquee-text"><span>•</span> Take simple daily eco actions</div>
+                            <div class="marquee-text"><span>•</span> Level up from seedling to guardian</div>
+                            <div class="marquee-text"><span>•</span> Learn the footprint basics</div>
+                            <div class="marquee-text"><span>•</span> Understand global warming</div>
+                            <div class="marquee-text"><span>•</span> Take simple daily eco actions</div>
+                            <div class="marquee-text"><span>•</span> Level up from seedling to guardian</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 1: What is a Carbon Footprint? (Brutalist Showcase) -->
+                    <div class="story-showcase-split">
+                        <div class="showcase-left">
+                            <span class="story-tag">Core Concept</span>
+                            <h3 class="editorial-title">What is a <span class="italic-highlight">Carbon Footprint</span>?</h3>
+                            <p class="story-body">A carbon footprint represents the total greenhouse gas emissions (including carbon dioxide and methane) caused directly and indirectly by an individual, event, organization, or product.</p>
+                            <p class="story-body">It acts as your atmospheric shadow. Every flight taken, light switched on, and meal consumed contributes to this collective impact, measured in metric tons of CO₂ equivalent (t CO₂e) per year.</p>
+                        </div>
+                        <div class="showcase-right">
+                            <div class="image-frame" style="max-width: 450px; width: 100%;">
+                                <img src="assets/carbon_footprint_concept.png" alt="Carbon Footprint Abstract Art">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Interactive Causes Accordion Matrix -->
+                    <div class="story-showcase-split reverse">
+                        <div class="showcase-left">
+                            <div class="image-frame" style="max-width: 450px; width: 100%;">
+                                <img src="assets/ecological_balance_concept.png" alt="Ecological Balance Infographic">
+                            </div>
+                        </div>
+                        <div class="showcase-right">
+                            <span class="story-tag">Main Contributors</span>
+                            <h3 class="editorial-title">Where does it <span class="italic-highlight">come from</span>?</h3>
+                            <p class="story-body" style="margin-bottom: 1.5rem;">Global emissions are driven by four primary daily lifestyle categories. Select a sector below to explore details:</p>
+                            
+                            <div class="causes-matrix">
+                                <!-- Item 1: Energy -->
+                                <div class="cause-accordion-item active" data-cause="energy">
+                                    <button class="accordion-header">
+                                        <div class="accordion-header-left">
+                                            <span class="accordion-emoji">🔌</span>
+                                            <div class="accordion-title-block">
+                                                <h4>Energy & Utilities</h4>
+                                                <span>~31% of typical footprint</span>
+                                            </div>
+                                        </div>
+                                        <span class="accordion-arrow">↓</span>
+                                    </button>
+                                    <div class="accordion-body" style="max-height: 200px;">
+                                        <div class="accordion-content">
+                                            <p>Electricity generation and home heating are the largest source of personal carbon emissions. Traditional coal-fired grid systems release greenhouse gases continuously to power appliances, air conditioning, and lights.</p>
+                                            <div class="accordion-metrics-grid">
+                                                <div class="accordion-metric-card">
+                                                    <span>Clean Alt</span>
+                                                    <strong>Heat Pumps / Solar</strong>
+                                                </div>
+                                                <div class="accordion-metric-card">
+                                                    <span>Target Baseline</span>
+                                                    <strong>&lt;150 KWh / month</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Item 2: Transport -->
+                                <div class="cause-accordion-item" data-cause="transport">
+                                    <button class="accordion-header">
+                                        <div class="accordion-header-left">
+                                            <span class="accordion-emoji">🚗</span>
+                                            <div class="accordion-title-block">
+                                                <h4>Transportation</h4>
+                                                <span>~15% of typical footprint</span>
+                                            </div>
+                                        </div>
+                                        <span class="accordion-arrow">↓</span>
+                                    </button>
+                                    <div class="accordion-body">
+                                        <div class="accordion-content">
+                                            <p>Combustion engines burn petrol or diesel, releasing carbon dioxide directly from the tailpipe. High mileage solo commutes and commercial flights are the most carbon-intensive transport choices.</p>
+                                            <div class="accordion-metrics-grid">
+                                                <div class="accordion-metric-card">
+                                                    <span>Clean Alt</span>
+                                                    <strong>Active Commutes / EVs</strong>
+                                                </div>
+                                                <div class="accordion-metric-card">
+                                                    <span>Target Baseline</span>
+                                                    <strong>Zero solo petrol travel</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Item 3: Diet -->
+                                <div class="cause-accordion-item" data-cause="diet">
+                                    <button class="accordion-header">
+                                        <div class="accordion-header-left">
+                                            <span class="accordion-emoji">🥗</span>
+                                            <div class="accordion-title-block">
+                                                <h4>Food & Diet</h4>
+                                                <span>~26% of typical footprint</span>
+                                            </div>
+                                        </div>
+                                        <span class="accordion-arrow">↓</span>
+                                    </button>
+                                    <div class="accordion-body">
+                                        <div class="accordion-content">
+                                            <p>Industrial livestock farming (particularly cattle) produces massive amounts of methane—a greenhouse gas 28x more potent than CO₂. Transportation of food across continents adds heavy transit carbon cost.</p>
+                                            <div class="accordion-metrics-grid">
+                                                <div class="accordion-metric-card">
+                                                    <span>Clean Alt</span>
+                                                    <strong>Plant-Based Diet</strong>
+                                                </div>
+                                                <div class="accordion-metric-card">
+                                                    <span>Target Baseline</span>
+                                                    <strong>Local organic meals</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Item 4: Waste -->
+                                <div class="cause-accordion-item" data-cause="waste">
+                                    <button class="accordion-header">
+                                        <div class="accordion-header-left">
+                                            <span class="accordion-emoji">📦</span>
+                                            <div class="accordion-title-block">
+                                                <h4>Shopping & Waste</h4>
+                                                <span>~28% of typical footprint</span>
+                                            </div>
+                                        </div>
+                                        <span class="accordion-arrow">↓</span>
+                                    </button>
+                                    <div class="accordion-body">
+                                        <div class="accordion-content">
+                                            <p>The manufacturing process of consumer goods requires extreme energy. Landfills containing organic waste release methane gas as material decomposes anaerobically without oxygen.</p>
+                                            <div class="accordion-metrics-grid">
+                                                <div class="accordion-metric-card">
+                                                    <span>Clean Alt</span>
+                                                    <strong>Composting / Reusable</strong>
+                                                </div>
+                                                <div class="accordion-metric-card">
+                                                    <span>Target Baseline</span>
+                                                    <strong>Zero single-use plastic</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Call to Action Banner -->
+                    <div class="home-cta-card">
+                        <span class="story-tag">Get Personal Insights</span>
+                        <h3>Ready to see your carbon metrics?</h3>
+                        <p>Take actions, log daily commutes/meals, simulate savings, and converse with the Eco-Assistant on the Dashboard.</p>
+                        <button class="primary-btn large-btn" id="home-enter-app-btn">Explore Your Dashboard</button>
+                    </div>
                 </div>
             </section>
 
