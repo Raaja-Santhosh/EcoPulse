@@ -248,13 +248,13 @@ body {
 }
 
 .hero-title {
-    font-family: var(--font-brutal);
+    font-family: var(--font-serif);
     font-size: min(10vw, 6.2rem);
-    font-weight: 800;
+    font-weight: 600;
     line-height: 1.05;
-    letter-spacing: -0.04em;
+    letter-spacing: -2px;
     color: var(--color-accent-sand);
-    text-transform: uppercase;
+    text-transform: none;
 }
 
 .reveal-word {
@@ -2261,27 +2261,25 @@ input:focus-visible {
 
 /* Text Marquee Scrolling Ticker */
 .text-marquee-wrapper {
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    overflow: hidden;
-    background-color: var(--bg-card);
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    padding: 1rem 0;
-    margin: 2.5rem 0;
     display: flex;
-    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+    background-color: var(--bg-card-nested);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.25rem 0;
+    margin: 2rem 0;
+    user-select: none;
+    gap: 3rem;
 }
 
 .marquee-content {
-    display: inline-flex;
-    animation: marqueeScroll 30s linear infinite;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-around;
+    min-width: 100%;
     gap: 3rem;
-    padding-right: 3rem;
+    animation: marqueeScroll 25s linear infinite;
 }
 
 .marquee-text {
@@ -2302,7 +2300,7 @@ input:focus-visible {
 
 @keyframes marqueeScroll {
     0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    100% { transform: translateX(calc(-100% - 3rem)); }
 }
 
 /* Curved Image Glassmorphic Frame */
