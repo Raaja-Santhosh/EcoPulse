@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="EcoPulse - Understand, track, and reduce your carbon footprint with personalized insights, daily tracking, and a smart eco-assistant.">
     <title>EcoPulse | Personal Carbon Intelligence Dashboard</title>
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Playfair (Serif Heading), Outfit (Body Text), Space Mono (Monospace Numbers) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <!-- Three.js (Required by Vanta) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Vanta Fog -->
@@ -123,7 +123,7 @@
                 <div class="comparative-grid">
                     <div class="comparative-stat-card">
                         <span class="comp-label">Average Indian</span>
-                        <div class="big-counter-display">
+                        <div class="big-counter-display font-mono">
                             <span id="counter-india">0.0</span>
                             <span class="counter-unit">Tons CO₂e/yr</span>
                         </div>
@@ -131,7 +131,7 @@
                     </div>
                     <div class="comparative-stat-card highlighted">
                         <span class="comp-label">Global Target</span>
-                        <div class="big-counter-display">
+                        <div class="big-counter-display font-mono">
                             <span id="counter-target">0.0</span>
                             <span class="counter-unit">Tons CO₂e/yr</span>
                         </div>
@@ -139,7 +139,7 @@
                     </div>
                     <div class="comparative-stat-card">
                         <span class="comp-label">US / Western Average</span>
-                        <div class="big-counter-display">
+                        <div class="big-counter-display font-mono">
                             <span id="counter-western">0.0</span>
                             <span class="counter-unit">Tons CO₂e/yr</span>
                         </div>
@@ -194,8 +194,22 @@
                 <h1 class="editorial-title">Discover Your Carbon Impact</h1>
                 <p class="section-subtitle">Answer 4 quick questions to initialize your EcoPulse score.</p>
                 
+                <!-- Animated Onboarding Step indicators -->
+                <div class="onboarding-progress-steps">
+                    <span class="onboarding-step-dot active" data-step-indicator="1"></span>
+                    <span class="onboarding-step-dot" data-step-indicator="2"></span>
+                    <span class="onboarding-step-dot" data-step-indicator="3"></span>
+                    <span class="onboarding-step-dot" data-step-indicator="4"></span>
+                </div>
+
                 <div class="quiz-container">
                     <div class="quiz-step active" data-step="1">
+                        <svg class="quiz-illustration" viewBox="0 0 100 100" width="80" height="80">
+                            <circle cx="50" cy="45" r="25" fill="none" stroke="var(--color-accent-sage)" stroke-width="3"/>
+                            <path d="M 40,70 L 60,70 M 45,75 L 55,75 M 48,80 L 52,80" stroke="var(--color-accent-sage)" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M 50,20 L 50,15 M 75,45 L 80,45 M 25,45 L 20,45 M 68,27 L 72,23 M 32,27 L 28,23" stroke="var(--color-accent-sage)" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M 45,45 L 50,35 L 50,50 L 55,45" fill="none" stroke="var(--color-accent-sand)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                         <div class="step-indicator">Step 1 of 4: Home Energy</div>
                         <h3>What is your household's primary heating/cooling source?</h3>
                         <div class="option-grid">
@@ -218,6 +232,13 @@
                     </div>
 
                     <div class="quiz-step" data-step="2">
+                        <svg class="quiz-illustration" viewBox="0 0 100 100" width="80" height="80">
+                            <path d="M 15,60 C 15,55 20,50 30,50 L 70,50 C 80,50 85,55 85,60 L 85,70 L 15,70 Z" fill="none" stroke="var(--color-accent-terracotta)" stroke-width="3" stroke-linejoin="round"/>
+                            <path d="M 30,50 L 35,35 C 37,30 42,30 45,30 L 65,30 C 68,30 73,30 75,35 L 80,50" fill="none" stroke="var(--color-accent-terracotta)" stroke-width="3" stroke-linejoin="round"/>
+                            <circle cx="32" cy="70" r="10" fill="var(--bg-main)" stroke="var(--color-accent-sand)" stroke-width="3"/>
+                            <circle cx="68" cy="70" r="10" fill="var(--bg-main)" stroke="var(--color-accent-sand)" stroke-width="3"/>
+                            <path d="M 45,38 L 55,38" stroke="var(--color-accent-terracotta)" stroke-width="2"/>
+                        </svg>
                         <div class="step-indicator">Step 2 of 4: Transportation</div>
                         <h3>How do you primarily commute to work or school?</h3>
                         <div class="option-grid">
@@ -245,6 +266,13 @@
                     </div>
 
                     <div class="quiz-step" data-step="3">
+                        <svg class="quiz-illustration" viewBox="0 0 100 100" width="80" height="80">
+                            <path d="M 15,45 Q 50,15 85,45 C 80,68 20,68 15,45 Z" fill="none" stroke="var(--color-accent-sand)" stroke-width="3"/>
+                            <path d="M 50,15 Q 60,35 50,55" fill="none" stroke="var(--color-accent-sage)" stroke-width="3"/>
+                            <path d="M 50,15 Q 40,35 50,55" fill="none" stroke="var(--color-accent-sage)" stroke-width="3"/>
+                            <path d="M 50,30 Q 30,25 35,15 Q 45,20 50,30" fill="none" stroke="var(--color-accent-sage)" stroke-width="2"/>
+                            <path d="M 50,38 Q 70,33 65,23 Q 55,28 50,38" fill="none" stroke="var(--color-accent-sage)" stroke-width="2"/>
+                        </svg>
                         <div class="step-indicator">Step 3 of 4: Diet & Food</div>
                         <h3>Which statement best describes your typical daily diet?</h3>
                         <div class="option-grid">
@@ -272,6 +300,11 @@
                     </div>
 
                     <div class="quiz-step" data-step="4">
+                        <svg class="quiz-illustration" viewBox="0 0 100 100" width="80" height="80">
+                            <path d="M 25,40 L 75,40 L 70,85 L 30,85 Z" fill="none" stroke="var(--color-accent-blue)" stroke-width="3" stroke-linejoin="round"/>
+                            <path d="M 38,40 C 38,25 62,25 62,40" fill="none" stroke="var(--color-accent-sand)" stroke-width="3"/>
+                            <path d="M 50,50 L 50,75 M 40,65 L 50,75 L 60,65" fill="none" stroke="var(--color-accent-blue)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
                         <div class="step-indicator">Step 4 of 4: Consumption & Waste</div>
                         <h3>How would you describe your recycling and shopping habits?</h3>
                         <div class="option-grid">
@@ -307,7 +340,7 @@
                     <div class="card hero-card">
                         <div class="hero-left">
                             <h2>Your Carbon Footprint</h2>
-                            <div class="main-score-display">
+                            <div class="main-score-display font-mono">
                                 <span class="score-number" id="total-carbon-score">0.0</span>
                                 <span class="score-unit">tons CO<sub>2</sub>e / yr</span>
                             </div>
@@ -371,28 +404,73 @@
                             <div class="mini-card-icon">⚡</div>
                             <div class="mini-card-info">
                                 <span class="mini-card-label">Weekly Savings</span>
-                                <span class="mini-card-value" id="weekly-savings-val">0.0 kg</span>
+                                <span class="mini-card-value font-mono" id="weekly-savings-val">0.0 kg</span>
                             </div>
                         </div>
                         <div class="card mini-card">
                             <div class="mini-card-icon">🌳</div>
                             <div class="mini-card-info">
                                 <span class="mini-card-label">Tree Equivalent</span>
-                                <span class="mini-card-value" id="tree-equivalent-val">0 trees</span>
+                                <span class="mini-card-value font-mono" id="tree-equivalent-val">0 trees</span>
                             </div>
                         </div>
                         <div class="card mini-card">
                             <div class="mini-card-icon">🔥</div>
                             <div class="mini-card-info">
                                 <span class="mini-card-label">Eco Streak</span>
-                                <span class="mini-card-value" id="streak-val">0 days</span>
+                                <span class="mini-card-value font-mono" id="streak-val">0 days</span>
                             </div>
                         </div>
                         <div class="card mini-card">
                             <div class="mini-card-icon">🏆</div>
                             <div class="mini-card-info">
                                 <span class="mini-card-label">Eco Points</span>
-                                <span class="mini-card-value" id="points-val">0 XP</span>
+                                <span class="mini-card-value font-mono" id="points-val">0 XP</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CATEGORY PROGRESS BARS (SaaS DATA Polish) -->
+                    <div class="card progress-breakdown-card">
+                        <h3>Category Intensity</h3>
+                        <p class="section-subtitle" style="margin-bottom: 1.5rem;">Eased bar metrics representing your actual tons distribution by lifestyle category.</p>
+                        
+                        <div class="bar-breakdown-list">
+                            <div class="bar-breakdown-item">
+                                <div class="bar-breakdown-info">
+                                    <span>🔌 Home Energy</span>
+                                    <span class="font-mono" id="progress-val-energy">0.0 t</span>
+                                </div>
+                                <div class="bar-breakdown-track">
+                                    <div class="bar-breakdown-fill energy" id="progress-bar-energy" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="bar-breakdown-item">
+                                <div class="bar-breakdown-info">
+                                    <span>🚗 Transportation</span>
+                                    <span class="font-mono" id="progress-val-transport">0.0 t</span>
+                                </div>
+                                <div class="bar-breakdown-track">
+                                    <div class="bar-breakdown-fill transport" id="progress-bar-transport" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="bar-breakdown-item">
+                                <div class="bar-breakdown-info">
+                                    <span>🥗 Food & Diet</span>
+                                    <span class="font-mono" id="progress-val-diet">0.0 t</span>
+                                </div>
+                                <div class="bar-breakdown-track">
+                                    <div class="bar-breakdown-fill diet" id="progress-bar-diet" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="bar-breakdown-item">
+                                <div class="bar-breakdown-info">
+                                    <span>📦 Shopping & Waste</span>
+                                    <span class="font-mono" id="progress-val-waste">0.0 t</span>
+                                </div>
+                                <div class="bar-breakdown-track">
+                                    <div class="bar-breakdown-fill waste" id="progress-bar-waste" style="width: 0%;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -411,37 +489,78 @@
                     <!-- INTERACTIVE SIMULATOR CARD -->
                     <div class="card simulator-card">
                         <h3>Carbon Reduction Simulator</h3>
-                        <p class="section-subtitle" style="margin-bottom: 1.5rem;">Drag sliders to forecast how lifestyle adjustments will reduce your yearly carbon footprint.</p>
+                        <p class="section-subtitle" style="margin-bottom: 1rem;">Drag sliders to forecast how lifestyle adjustments will reduce your yearly carbon footprint.</p>
                         
-                        <div class="slider-group">
-                            <div class="slider-label-row">
-                                <span>Car Commute Distance</span>
-                                <span id="slider-val-commute">15 miles/day</span>
-                            </div>
-                            <input type="range" id="slider-commute" min="0" max="60" value="15" class="custom-slider">
-                        </div>
+                        <div class="simulator-layout">
+                            <div class="simulator-inputs">
+                                <div class="slider-group">
+                                    <div class="slider-label-row">
+                                        <span>Car Commute Distance</span>
+                                        <span id="slider-val-commute" class="font-mono">15 miles/day</span>
+                                    </div>
+                                    <input type="range" id="slider-commute" min="0" max="60" value="15" class="custom-slider">
+                                </div>
 
-                        <div class="slider-group">
-                            <div class="slider-label-row">
-                                <span>Plant-Based Diet Ratio</span>
-                                <span id="slider-val-diet">25% plant-based</span>
-                            </div>
-                            <input type="range" id="slider-diet" min="0" max="100" value="25" class="custom-slider">
-                        </div>
+                                <div class="slider-group">
+                                    <div class="slider-label-row">
+                                        <span>Plant-Based Diet Ratio</span>
+                                        <span id="slider-val-diet" class="font-mono">25% plant-based</span>
+                                    </div>
+                                    <input type="range" id="slider-diet" min="0" max="100" value="25" class="custom-slider">
+                                </div>
 
-                        <div class="slider-group">
-                            <div class="slider-label-row">
-                                <span>Utility Thermostat offset</span>
-                                <span id="slider-val-temp">0°C reduction</span>
+                                <div class="slider-group">
+                                    <div class="slider-label-row">
+                                        <span>Utility Thermostat offset</span>
+                                        <span id="slider-val-temp" class="font-mono">0°C reduction</span>
+                                    </div>
+                                    <input type="range" id="slider-temp" min="0" max="5" value="0" class="custom-slider">
+                                </div>
                             </div>
-                            <input type="range" id="slider-temp" min="0" max="5" value="0" class="custom-slider">
-                        </div>
-
-                        <div class="simulator-output">
-                            <span class="output-label">Forecasted Footprint</span>
-                            <div class="output-value-container">
-                                <span class="output-value" id="simulator-score-display">0.0</span>
-                                <span class="output-unit">t CO₂e/yr</span>
+                            
+                            <div class="simulator-visualization">
+                                <div class="before-after-split">
+                                    <div class="split-side current">
+                                        <span class="split-label">Current Pulse</span>
+                                        <div class="split-value-container">
+                                            <span class="split-value font-mono" id="sim-current-val">0.0</span>
+                                            <span class="split-unit">t CO₂e</span>
+                                        </div>
+                                    </div>
+                                    <div class="split-side forecasted">
+                                        <span class="split-label">Simulated Pulse</span>
+                                        <div class="split-value-container">
+                                            <span class="split-value font-mono" id="simulator-score-display">0.0</span>
+                                            <span class="split-unit">t CO₂e</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mini-island-svg-container">
+                                    <svg id="sim-eco-island-svg" viewBox="0 0 400 250" width="100%" height="100%">
+                                        <rect id="sim-island-sky" x="0" y="0" width="400" height="200" fill="#a4c6df" style="transition: fill 0.8s;"></rect>
+                                        <rect id="sim-island-smog" x="0" y="0" width="400" height="200" fill="#665b53" opacity="0" style="transition: opacity 0.8s;"></rect>
+                                        <circle id="sim-island-sun" cx="300" cy="50" r="22" fill="#fde047" style="transition: fill 0.8s;"></circle>
+                                        <g id="sim-cloud-group">
+                                            <path class="cloud-path" d="M 50,80 A 15,15 0 0,1 80,80 A 20,20 0 0,1 110,80 A 15,15 0 0,1 120,90 L 40,90 Z" fill="#ffffff" opacity="0.85"></path>
+                                            <path class="cloud-path" d="M 220,60 A 12,12 0 0,1 240,60 A 18,18 0 0,1 270,60 A 12,12 0 0,1 280,70 L 210,70 Z" fill="#ffffff" opacity="0.85"></path>
+                                        </g>
+                                        <g id="sim-birds-group" opacity="1" style="transition: opacity 0.8s;">
+                                            <path d="M 80,40 Q 85,35 90,40 Q 95,35 100,40" fill="none" stroke="#2c3327" stroke-width="1.5"></path>
+                                            <path d="M 140,30 Q 145,25 150,30 Q 155,25 160,30" fill="none" stroke="#2c3327" stroke-width="1.5"></path>
+                                        </g>
+                                        <path d="M 60,180 L 340,180 Q 350,195 310,210 Q 200,230 90,210 Q 50,195 60,180 Z" fill="#78350f"></path>
+                                        <path id="sim-island-grass" d="M 60,180 Q 200,165 340,180 L 345,185 Q 200,172 55,185 Z" fill="#4ade80" style="transition: fill 0.8s;"></path>
+                                        <g id="sim-trees-group">
+                                            <rect x="110" y="140" width="8" height="40" fill="#451a03"></rect>
+                                            <circle id="sim-tree1-leaves" cx="114" cy="130" r="20" fill="#15803d" style="transition: fill 0.8s, r 0.8s;"></circle>
+                                            <rect x="200" y="125" width="10" height="55" fill="#451a03"></rect>
+                                            <circle id="sim-tree2-leaves" cx="205" cy="110" r="28" fill="#166534" style="transition: fill 0.8s, r 0.8s;"></circle>
+                                            <rect x="280" y="145" width="8" height="35" fill="#451a03"></rect>
+                                            <circle id="sim-tree3-leaves" cx="284" cy="135" r="16" fill="#15803d" style="transition: fill 0.8s, r 0.8s;"></circle>
+                                        </g>
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -463,25 +582,25 @@
                                 <span class="rank">#1</span>
                                 <span class="avatar">🏢</span>
                                 <span class="name">Floor 3 (Forest Guardians)</span>
-                                <span class="xp">3,850 XP</span>
+                                <span class="xp font-mono">3,850 XP</span>
                             </div>
                             <div class="leaderboard-item current-user">
                                 <span class="rank" id="user-rank-val">#2</span>
                                 <span class="avatar">🏫</span>
                                 <span class="name">Floor 2 (Your Floor)</span>
-                                <span class="xp" id="user-xp-display">0 XP</span>
+                                <span class="xp font-mono" id="user-xp-display">0 XP</span>
                             </div>
                             <div class="leaderboard-item">
                                 <span class="rank">#3</span>
                                 <span class="avatar">🏢</span>
                                 <span class="name">Floor 1 (Seedlings)</span>
-                                <span class="xp">480 XP</span>
+                                <span class="xp font-mono">480 XP</span>
                             </div>
                             <div class="leaderboard-item">
                                 <span class="rank">#4</span>
                                 <span class="avatar">🏢</span>
                                 <span class="name">Floor 4 (Sprouts)</span>
-                                <span class="xp">150 XP</span>
+                                <span class="xp font-mono">150 XP</span>
                             </div>
                         </div>
                     </div>
@@ -490,6 +609,77 @@
                         <h3>Emissions Trend</h3>
                         <div class="chart-wrapper">
                             <canvas id="trend-chart" aria-label="Carbon emission trend chart" role="img"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- ACHIEVEMENTS & BADGES CARD -->
+                    <div class="card achievements-card">
+                        <h3>Your Trophies & Badges</h3>
+                        <p class="section-subtitle" style="margin-bottom: 1.5rem;">Earn XP by logging actions to unlock higher environmental titles.</p>
+                        <div class="badges-grid">
+                            <div class="badge-item active-current" data-badge-level="1" id="badge-seedling">
+                                <div class="badge-svg-container">
+                                    <svg viewBox="0 0 100 100" width="60" height="60">
+                                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--color-accent-sage)" stroke-width="2" stroke-dasharray="4 2"/>
+                                        <path d="M 50,75 L 50,45" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+                                        <path d="M 50,55 Q 35,45 35,35 Q 45,35 50,55" fill="var(--color-accent-sage)"/>
+                                    </svg>
+                                </div>
+                                <span class="badge-name">Seedling</span>
+                                <span class="badge-req">0+ XP</span>
+                            </div>
+                            <div class="badge-item locked" data-badge-level="2" id="badge-sprout">
+                                <div class="badge-svg-container">
+                                    <svg viewBox="0 0 100 100" width="60" height="60">
+                                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--color-accent-sage)" stroke-width="2" stroke-dasharray="4 2"/>
+                                        <path d="M 50,75 L 50,40" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+                                        <path d="M 50,50 Q 30,40 32,25 Q 45,30 50,50" fill="var(--color-accent-sage)"/>
+                                        <path d="M 50,55 Q 70,45 68,32 Q 55,38 50,55" fill="var(--color-accent-sage)"/>
+                                    </svg>
+                                </div>
+                                <span class="badge-name">Sprout</span>
+                                <span class="badge-req">101+ XP</span>
+                            </div>
+                            <div class="badge-item locked" data-badge-level="3" id="badge-sapling">
+                                <div class="badge-svg-container">
+                                    <svg viewBox="0 0 100 100" width="60" height="60">
+                                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--color-accent-sage)" stroke-width="2" stroke-dasharray="4 2"/>
+                                        <path d="M 50,75 L 50,35" stroke="#78350f" stroke-width="4" stroke-linecap="round"/>
+                                        <path d="M 50,45 Q 25,35 30,20 Q 45,25 50,45" fill="var(--color-accent-sage)"/>
+                                        <path d="M 50,52 Q 75,42 70,28 Q 55,34 50,52" fill="var(--color-accent-sage)"/>
+                                        <path d="M 50,35 Q 40,20 50,10 Q 60,20 50,35" fill="var(--color-accent-sage)"/>
+                                    </svg>
+                                </div>
+                                <span class="badge-name">Sapling</span>
+                                <span class="badge-req">301+ XP</span>
+                            </div>
+                            <div class="badge-item locked" data-badge-level="4" id="badge-oaktree">
+                                <div class="badge-svg-container">
+                                    <svg viewBox="0 0 100 100" width="60" height="60">
+                                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--color-accent-sage)" stroke-width="2" stroke-dasharray="4 2"/>
+                                        <path d="M 50,75 L 50,40 M 50,55 L 40,45 M 50,50 L 60,42" stroke="#78350f" stroke-width="5" stroke-linecap="round"/>
+                                        <circle cx="50" cy="32" r="18" fill="var(--color-accent-sage)"/>
+                                        <circle cx="40" cy="40" r="14" fill="#15803d"/>
+                                        <circle cx="60" cy="38" r="12" fill="#166534"/>
+                                    </svg>
+                                </div>
+                                <span class="badge-name">Oak Tree</span>
+                                <span class="badge-req">701+ XP</span>
+                            </div>
+                            <div class="badge-item locked" data-badge-level="5" id="badge-forestguardian">
+                                <div class="badge-svg-container">
+                                    <svg viewBox="0 0 100 100" width="60" height="60">
+                                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--color-accent-sand)" stroke-width="3" stroke-dasharray="4 2"/>
+                                        <path d="M 50,75 L 50,35" stroke="#78350f" stroke-width="5" stroke-linecap="round"/>
+                                        <path d="M 50,40 C 20,40 25,15 50,15 C 75,15 80,40 50,40 Z" fill="var(--color-accent-sand)"/>
+                                        <path d="M 25,25 L 27,27 L 25,29 L 23,27 Z" fill="var(--color-accent-sand)"/>
+                                        <path d="M 75,22 L 77,24 L 75,26 L 73,24 Z" fill="var(--color-accent-sand)"/>
+                                        <path d="M 50,8 Q 50,5 50,2 Q 50,5 50,8" stroke="var(--color-accent-sand)" stroke-width="2"/>
+                                    </svg>
+                                </div>
+                                <span class="badge-name">Forest Guardian</span>
+                                <span class="badge-req">1500+ XP</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -538,12 +728,12 @@
                             <div class="nudge-opt-card selected" id="opt-meal-burger" data-value="8.2">
                                 <h5>Beef Burger + Fries</h5>
                                 <p>5-mile bike courier delivery</p>
-                                <span class="nudge-opt-cost">8.2 kg CO₂e</span>
+                                <span class="nudge-opt-cost font-mono">8.2 kg CO₂e</span>
                             </div>
                             <div class="nudge-opt-card" id="opt-meal-bowl" data-value="0.6">
                                 <h5>Vegan Buddha Bowl</h5>
                                 <p>1-mile local walking delivery</p>
-                                <span class="nudge-opt-cost">0.6 kg CO₂e</span>
+                                <span class="nudge-opt-cost font-mono">0.6 kg CO₂e</span>
                             </div>
                         </div>
 
@@ -562,12 +752,12 @@
                             <div class="nudge-opt-card selected" id="opt-commute-suv" data-value="6.2">
                                 <h5>Drive Petrol SUV</h5>
                                 <p>15 miles solo commute</p>
-                                <span class="nudge-opt-cost">6.2 kg CO₂e</span>
+                                <span class="nudge-opt-cost font-mono">6.2 kg CO₂e</span>
                             </div>
                             <div class="nudge-opt-card" id="opt-commute-train" data-value="1.2">
                                 <h5>Take Electric Metro Train</h5>
                                 <p>Shared electric mass transit</p>
-                                <span class="nudge-opt-cost">1.2 kg CO₂e</span>
+                                <span class="nudge-opt-cost font-mono">1.2 kg CO₂e</span>
                             </div>
                         </div>
 
@@ -592,6 +782,18 @@
             <!-- TRACKER/DAILY LOG TAB -->
             <section id="tracker-tab" class="tab-content hidden">
                 <div class="tracker-layout">
+                    <!-- LOGGED TODAY SUMMARY CARD -->
+                    <div class="card logged-today-card">
+                        <div>
+                            <h4>Total Carbon Logged Today</h4>
+                            <p class="section-subtitle">Sum of all activities tracked for the current calendar date.</p>
+                        </div>
+                        <div class="logged-today-value-container">
+                            <span class="logged-today-value font-mono" id="logged-today-val">0.0</span>
+                            <span class="logged-today-unit">kg CO₂e</span>
+                        </div>
+                    </div>
+
                     <!-- LOG EMISSIONS FORM -->
                     <div class="card log-card">
                         <h3>Log Daily Activity</h3>
@@ -650,9 +852,20 @@
                     <div class="card chat-card-full">
                         <div class="chat-header">
                             <div class="chat-agent-info">
-                                <span class="agent-avatar">🤖</span>
+                                <div class="agent-avatar" style="width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; background-color: var(--bg-card-nested); border-radius: 12px; border: 1px solid var(--border-color);">
+                                    <svg viewBox="0 0 100 100" width="30" height="30">
+                                        <circle cx="50" cy="55" r="30" fill="var(--color-accent-sage)"/>
+                                        <path d="M 50,55 Q 35,45 35,30 Q 50,45 50,55" fill="#15803d"/>
+                                        <path d="M 50,55 Q 65,45 65,30 Q 50,45 50,55" fill="#15803d"/>
+                                        <circle cx="40" cy="50" r="6" fill="#ffffff"/>
+                                        <circle cx="40" cy="50" r="3" fill="#131412"/>
+                                        <circle cx="60" cy="50" r="6" fill="#ffffff"/>
+                                        <circle cx="60" cy="50" r="3" fill="#131412"/>
+                                        <path d="M 50,55 L 47,60 L 53,60 Z" fill="var(--color-accent-sand)"/>
+                                    </svg>
+                                </div>
                                 <div>
-                                    <span class="agent-name">EcoPulse Assistant</span>
+                                    <span class="agent-name">EcoPulse Assistant (EcoMascot)</span>
                                     <span class="agent-status">Online • Smart Eco-Intelligence</span>
                                 </div>
                         </div>
@@ -676,6 +889,29 @@
             </div>
         </section>
     </main>
+
+    <!-- LEVEL UP OVERLAY MODAL -->
+    <div id="levelup-overlay" class="levelup-overlay hidden">
+        <div class="levelup-card">
+            <div class="card-inner">
+                <!-- Front of Card (Mysterious Glow) -->
+                <div class="card-front">
+                    <span class="unlock-glow">✨</span>
+                    <h3>New Rank Unlocked!</h3>
+                    <p>Click to reveal your rank...</p>
+                </div>
+                <!-- Back of Card (The actual badge) -->
+                <div class="card-back">
+                    <div class="badge-reveal-container" id="levelup-badge-container">
+                        <!-- Dynamic SVG will be injected here -->
+                    </div>
+                    <h2 class="levelup-title" id="levelup-title-el">Level 2: Sprout</h2>
+                    <p class="levelup-desc" id="levelup-desc-el">You have sprouted! Keep tracking and committing to daily actions.</p>
+                    <button class="primary-btn" id="levelup-claim-btn" style="margin-top: 1rem; width: 100%;">Awesome!</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer class="app-footer">
         <p>&copy; 2026 EcoPulse Carbon Intelligence. Built with absolute sustainability in mind.</p>

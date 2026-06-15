@@ -29,7 +29,8 @@ let prevStats = {
     totalFootprint: 0,
     weeklySavings: 0,
     treeEquivalent: 0,
-    xpPoints: 0
+    xpPoints: 0,
+    loggedToday: 0
 };
 
 // Global Chart variables
@@ -48,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSimulator();
     setupChallenge();
     setupSandbox();
+    setupLevelUpModal();
     
     // Premium Motion Setup
     setupLenis();
@@ -112,6 +114,7 @@ function setupQuiz() {
     const quizSteps = document.querySelectorAll('.quiz-step');
     const prevBtn = document.getElementById('prev-step-btn');
     const nextBtn = document.getElementById('next-step-btn');
+    const dots = document.querySelectorAll('.onboarding-step-dot');
     
     let currentStep = 1;
     let selectedValues = {
@@ -138,22 +141,85 @@ function setupQuiz() {
         });
     });
 
+    function goToStep(fromStep, toStep) {
+        const currentEl = quizSteps[fromStep - 1];
+        const nextEl = quizSteps[toStep - 1];
+        
+        dots.forEach((dot, idx) => {
+            if (idx === toStep - 1) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+        
+        if (toStep > fromStep) {
+            currentEl.classList.add('exit-left');
+            currentEl.classList.remove('active');
+            
+            nextEl.classList.remove('exit-left');
+            nextEl.classList.add('active');
+            
+            // Animate SVG inside next step if GSAP is available
+            const svg = nextEl.querySelector('.quiz-illustration');
+            if (svg && typeof gsap !== 'undefined') {
+                gsap.fromTo(svg, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.5)", delay: 0.1 });
+            }
+            
+            setTimeout(() => {
+                currentEl.classList.remove('exit-left');
+            }, 500);
+        } else {
+            currentEl.classList.remove('active');
+            nextEl.classList.add('exit-left');
+            
+            // Force reflow
+            nextEl.offsetHeight;
+            nextEl.classList.remove('exit-left');
+            nextEl.classList.add('active');
+        }
+        
+        currentStep = toStep;
+        
+        if (currentStep === 1) {
+            prevBtn.setAttribute('disabled', 'true');
+        } else {
+            prevBtn.removeAttribute('disabled');
+        }
+        
+        const activeCategory = nextEl.querySelector('.option-btn').dataset.category;
+        if (selectedValues[activeCategory] !== null) {
+            nextBtn.removeAttribute('disabled');
+        } else {
+            nextBtn.setAttribute('disabled', 'true');
+        }
+    }
+
+    // Dot navigation
+    dots.forEach(dot => {
+        dot.addEventListener('click', () => {
+            const target = parseInt(dot.dataset.stepIndicator);
+            if (target === currentStep) return;
+            
+            let canGo = true;
+            for (let i = 1; i < target; i++) {
+                const cat = quizSteps[i - 1].querySelector('.option-btn').dataset.category;
+                if (selectedValues[cat] === null) {
+                    canGo = false;
+                    break;
+                }
+            }
+            
+            if (canGo) {
+                goToStep(currentStep, target);
+            }
+        });
+    });
+
     // Navigation buttons
     nextBtn.addEventListener('click', () => {
         if (currentStep < 4) {
-            quizSteps[currentStep - 1].classList.remove('active');
-            currentStep++;
-            quizSteps[currentStep - 1].classList.add('active');
-            
-            prevBtn.removeAttribute('disabled');
-            
-            // Check if next step already has a selection
-            const activeCategory = quizSteps[currentStep - 1].querySelector('.option-btn').dataset.category;
-            if (selectedValues[activeCategory] !== null) {
-                nextBtn.removeAttribute('disabled');
-            } else {
-                nextBtn.setAttribute('disabled', 'true');
-            }
+            goToStep(currentStep, currentStep + 1);
         } else {
             // Complete Onboarding
             state.footprint = { ...selectedValues };
@@ -168,25 +234,27 @@ function setupQuiz() {
             });
             saveState();
             
-            quizSection.classList.add('hidden');
-            document.getElementById('dashboard-tab').classList.remove('hidden');
-            document.getElementById('nav-dashboard').classList.add('active');
-            
-            triggerConfetti();
-            renderApp();
+            gsap.to(quizSection, {
+                opacity: 0,
+                y: -30,
+                duration: 0.6,
+                ease: "power2.inOut",
+                onComplete: () => {
+                    quizSection.classList.add('hidden');
+                    quizSection.style.opacity = '1';
+                    quizSection.style.transform = 'none';
+                    document.getElementById('dashboard-tab').classList.remove('hidden');
+                    document.getElementById('nav-dashboard').classList.add('active');
+                    triggerConfetti();
+                    renderApp();
+                }
+            });
         }
     });
 
     prevBtn.addEventListener('click', () => {
         if (currentStep > 1) {
-            quizSteps[currentStep - 1].classList.remove('active');
-            currentStep--;
-            quizSteps[currentStep - 1].classList.add('active');
-            
-            nextBtn.removeAttribute('disabled');
-            if (currentStep === 1) {
-                prevBtn.setAttribute('disabled', 'true');
-            }
+            goToStep(currentStep, currentStep - 1);
         }
     });
 }
@@ -254,14 +322,14 @@ function renderActions(filter = 'all') {
         }
         
         btn.addEventListener('click', () => {
-            toggleAction(act.id);
+            toggleAction(act.id, card);
         });
 
         container.appendChild(card);
     });
 }
 
-function toggleAction(id) {
+function toggleAction(id, cardEl) {
     const actionIndex = state.actions.findIndex(a => a.id === id);
     if (actionIndex !== -1) {
         const act = state.actions[actionIndex];
@@ -271,14 +339,38 @@ function toggleAction(id) {
             state.xp += act.xp;
             state.footprint[act.category] = Math.max(0, state.footprint[act.category] - (act.savings / 12));
             state.streak = Math.min(30, state.streak + 1);
-            triggerConfetti();
+            
+            if (cardEl && typeof gsap !== 'undefined') {
+                const btn = cardEl.querySelector('.action-check-btn');
+                btn.innerText = '✓ Active';
+                btn.style.backgroundColor = 'var(--color-accent-sage)';
+                btn.style.color = '#131412';
+                
+                gsap.to(cardEl, {
+                    scale: 1.05,
+                    borderColor: 'var(--color-accent-sage)',
+                    backgroundColor: 'rgba(194, 216, 180, 0.1)',
+                    duration: 0.25,
+                    yoyo: true,
+                    repeat: 1,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        saveState();
+                        triggerConfetti();
+                        renderApp();
+                    }
+                });
+            } else {
+                saveState();
+                triggerConfetti();
+                renderApp();
+            }
         } else {
             state.xp = Math.max(0, state.xp - act.xp);
             state.footprint[act.category] = state.footprint[act.category] + (act.savings / 12);
+            saveState();
+            renderApp();
         }
-
-        saveState();
-        renderApp();
     }
 }
 
@@ -419,7 +511,19 @@ function renderLogHistory() {
     const nonSystemLogs = state.logs.filter(l => !l.isSystem);
 
     if (nonSystemLogs.length === 0) {
-        listContainer.innerHTML = `<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No logged activities yet.</p>`;
+        listContainer.innerHTML = `
+            <div class="empty-log-state" style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 3rem 1.5rem; gap: 1rem;">
+                <svg viewBox="0 0 100 100" width="80" height="80" style="opacity: 0.35;">
+                    <rect x="25" y="15" width="50" height="70" rx="8" fill="none" stroke="var(--text-secondary)" stroke-width="3"/>
+                    <rect x="38" y="10" width="24" height="10" rx="3" fill="var(--border-color)" stroke="var(--text-secondary)" stroke-width="2"/>
+                    <line x1="35" y1="35" x2="65" y2="35" stroke="var(--text-secondary)" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="35" y1="50" x2="55" y2="50" stroke="var(--text-secondary)" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="35" y1="65" x2="60" y2="65" stroke="var(--text-secondary)" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+                <h4 style="color: var(--color-accent-sand); font-family: var(--font-serif); font-size: 1.25rem;">Your Log History is Clean</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; max-width: 250px;">Log your first travel, food, energy, or waste activity on the left to start tracking your daily carbon pulse!</p>
+            </div>
+        `;
         return;
     }
 
@@ -427,11 +531,18 @@ function renderLogHistory() {
         const item = document.createElement('div');
         item.className = 'log-item';
         
-        let icon = '📝';
-        if (log.category === 'transport') icon = '🚗';
-        if (log.category === 'diet') icon = '🥗';
-        if (log.category === 'energy') icon = '🔌';
-        if (log.category === 'waste') icon = '♻️';
+        let iconSvg = '';
+        if (log.category === 'transport') {
+            iconSvg = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--color-accent-terracotta)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="7" rx="1"/><path d="M7 10l2-5h6l2 5"/><circle cx="8" cy="17" r="1.5" fill="var(--bg-main)"/><circle cx="16" cy="17" r="1.5" fill="var(--bg-main)"/></svg>`;
+        } else if (log.category === 'diet') {
+            iconSvg = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--color-accent-sand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 0-10 10c0 4.42 3.58 8 8 8h4c4.42 0 8-3.58 8-8v-2a8 8 0 0 0-8-8z"/><path d="M12 6a3 3 0 0 1 3 3v2a3 3 0 0 1-6 0v-2a3 3 0 0 1 3-3z"/></svg>`;
+        } else if (log.category === 'energy') {
+            iconSvg = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--color-accent-sage)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`;
+        } else if (log.category === 'waste') {
+            iconSvg = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--color-accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7H3M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 7v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7M10 11v6M14 11v6"/></svg>`;
+        } else {
+            iconSvg = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--color-accent-sand)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`;
+        }
 
         const isSaving = log.value < 0;
         const valText = isSaving ? `${log.value.toFixed(2)} kg CO₂e` : `+${log.value.toFixed(2)} kg CO₂e`;
@@ -439,7 +550,7 @@ function renderLogHistory() {
 
         item.innerHTML = `
             <div class="log-item-left">
-                <span class="log-item-icon">${icon}</span>
+                <span class="log-item-icon" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background-color: var(--bg-main); border-radius: 8px; border: 1px solid var(--border-color);">${iconSvg}</span>
                 <div class="log-item-details">
                     <span class="log-item-title">${log.description}</span>
                     <span class="log-item-meta">${log.date} • ${log.category}</span>
@@ -470,6 +581,8 @@ function deleteLog(id) {
 }
 
 // Carbon Reduction Simulator Logic
+let prevProjectedScore = 0;
+
 function setupSimulator() {
     const commuteSlider = document.getElementById('slider-commute');
     const dietSlider = document.getElementById('slider-diet');
@@ -478,8 +591,10 @@ function setupSimulator() {
     const commuteVal = document.getElementById('slider-val-commute');
     const dietVal = document.getElementById('slider-val-diet');
     const tempVal = document.getElementById('slider-val-temp');
+    const displayEl = document.getElementById('simulator-score-display');
 
     const updateSimulatorOutput = () => {
+        if (!commuteSlider || !dietSlider || !tempSlider || !displayEl) return;
         commuteVal.innerText = `${commuteSlider.value} miles/day`;
         dietVal.innerText = `${dietSlider.value}% plant-based`;
         tempVal.innerText = `${tempSlider.value}°C reduction`;
@@ -491,13 +606,20 @@ function setupSimulator() {
         const tempSavings = parseFloat(tempSlider.value) * 0.45;
 
         const projectedScore = Math.max(0.5, totalBase - (transportSavings + dietSavings + tempSavings));
-        document.getElementById('simulator-score-display').innerText = projectedScore.toFixed(1);
+        
+        animateStatCounter(displayEl, prevProjectedScore, projectedScore, 1);
+        prevProjectedScore = projectedScore;
+
+        updateSimEcoIsland(projectedScore);
     };
 
     if (commuteSlider && dietSlider && tempSlider) {
         [commuteSlider, dietSlider, tempSlider].forEach(slider => {
             slider.addEventListener('input', updateSimulatorOutput);
         });
+        
+        const totalBase = state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste;
+        prevProjectedScore = totalBase;
         setTimeout(updateSimulatorOutput, 200);
     }
 }
@@ -739,7 +861,13 @@ function handleUserMessage(msg) {
 
     const typingIndicator = document.createElement('div');
     typingIndicator.className = 'message assistant-msg typing-msg';
-    typingIndicator.innerHTML = `<p>Thinking...</p>`;
+    typingIndicator.innerHTML = `
+        <div class="typing-indicator">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+        </div>
+    `;
     container.appendChild(typingIndicator);
     container.scrollTop = container.scrollHeight;
 
@@ -1127,7 +1255,25 @@ function updateEcoIsland(score) {
     let t2Radius = 28, t2Color = '#166534';
     let t3Radius = 16, t3Color = '#15803d';
 
-    if (score < 4.0) {
+    const nonSystemLogs = state.logs.filter(l => !l.isSystem);
+    const hasLogs = nonSystemLogs.length > 0;
+
+    if (!hasLogs) {
+        healthBadge.innerText = 'Dormant';
+        healthBadge.style.color = 'var(--text-secondary)';
+        healthBadge.style.borderColor = 'var(--border-color)';
+        healthBadge.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+        statusText.innerText = 'No activities logged. Start logging your daily travel, food, or energy inputs to sprout trees and clear the skies!';
+        
+        targetSkyColor = '#475569';
+        targetSmogOpacity = 0.2;
+        targetSunColor = '#94a3b8';
+        targetBirdsOpacity = 0;
+        targetGrassColor = '#57534e'; // stone grey grass
+        t1Radius = 0; t1Color = '#451a03';
+        t2Radius = 0; t2Color = '#451a03';
+        t3Radius = 0; t3Color = '#451a03';
+    } else if (score < 4.0) {
         healthBadge.innerText = 'Healthy';
         healthBadge.style.color = 'var(--color-success)';
         healthBadge.style.borderColor = 'var(--color-success)';
@@ -1149,9 +1295,9 @@ function updateEcoIsland(score) {
         healthBadge.style.backgroundColor = 'rgba(223, 138, 96, 0.1)';
         statusText.innerText = 'Moderate emissions. Smog is forming, and smaller trees are starting to dry.';
     } else {
-        targetSkyColor = '#475569';
+        targetSkyColor = '#334155';
         targetSmogOpacity = 0.75;
-        targetSunColor = '#64748b';
+        targetSunColor = '#475569';
         targetBirdsOpacity = 0;
         targetGrassColor = '#78350f';
         t1Radius = 2; t1Color = '#451a03';
@@ -1206,12 +1352,36 @@ function renderApp() {
         tabEl.classList.remove('hidden');
     }
 
+    // Detect level up
+    const prevLevelIdx = getLevelIndex(prevStats.xpPoints);
+    const currentLevelIdx = getLevelIndex(state.xp);
+    if (currentLevelIdx > prevLevelIdx && state.isOnboarded) {
+        triggerLevelUpModal(currentLevelIdx);
+    }
+
     // Total Carbon Score Counter Ticker
     const totalFootprintVal = parseFloat((state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste).toFixed(1));
     const totalScoreEl = document.getElementById('total-carbon-score');
     if (totalScoreEl) {
         animateStatCounter(totalScoreEl, prevStats.totalFootprint, totalFootprintVal, 1);
         prevStats.totalFootprint = totalFootprintVal;
+    }
+
+    const simCurrentValEl = document.getElementById('sim-current-val');
+    if (simCurrentValEl) {
+        simCurrentValEl.innerText = totalFootprintVal.toFixed(1);
+    }
+
+    // Daily Log Total Ticker Calculation
+    const todayStr = new Date().toISOString().split('T')[0];
+    const loggedTodaySum = state.logs
+        .filter(l => l.date === todayStr && !l.isSystem)
+        .reduce((sum, l) => sum + l.value, 0);
+
+    const loggedTodayEl = document.getElementById('logged-today-val');
+    if (loggedTodayEl) {
+        animateStatCounter(loggedTodayEl, prevStats.loggedToday || 0, Math.max(0, loggedTodaySum), 1);
+        prevStats.loggedToday = Math.max(0, loggedTodaySum);
     }
 
     updateEcoIsland(totalFootprintVal);
@@ -1268,26 +1438,69 @@ function renderApp() {
         { name: 'Floor 4 (Sprouts)', xp: 150, avatar: '🏢', currentUser: false }
     ];
 
-    leaderboardItems.sort((a, b) => b.xp - a.xp);
     const leaderboardList = document.querySelector('.leaderboard-list');
+    const firstPositions = {};
+    if (leaderboardList) {
+        // FIRST step of FLIP: Record previous positions
+        const currentItems = leaderboardList.querySelectorAll('.leaderboard-item');
+        currentItems.forEach(el => {
+            const nameEl = el.querySelector('.name');
+            if (nameEl) {
+                firstPositions[nameEl.innerText] = el.getBoundingClientRect().top;
+            }
+        });
+    }
+
+    leaderboardItems.sort((a, b) => b.xp - a.xp);
+    
     if (leaderboardList) {
         leaderboardList.innerHTML = '';
+        
+        const newElements = [];
         leaderboardItems.forEach((item, index) => {
+            let rankHtml = `#${index + 1}`;
+            let medalClass = '';
+            if (index === 0) { rankHtml = '👑 #1'; medalClass = 'rank-gold'; }
+            else if (index === 1) { rankHtml = '🥈 #2'; medalClass = 'rank-silver'; }
+            else if (index === 2) { rankHtml = '🥉 #3'; medalClass = 'rank-bronze'; }
+
             const itemDiv = document.createElement('div');
-            itemDiv.className = `leaderboard-item ${item.currentUser ? 'current-user' : ''}`;
+            itemDiv.className = `leaderboard-item ${medalClass} ${item.currentUser ? 'current-user' : ''}`;
             itemDiv.innerHTML = `
-                <span class="rank">#${index + 1}</span>
+                <span class="rank">${rankHtml}</span>
                 <span class="avatar">${item.avatar}</span>
                 <span class="name">${item.name}</span>
-                <span class="xp">${item.xp.toLocaleString()} XP</span>
+                <span class="xp font-mono">${item.xp.toLocaleString()} XP</span>
             `;
             leaderboardList.appendChild(itemDiv);
+            newElements.push({ el: itemDiv, name: item.name });
             
             if (item.currentUser) {
                 const rankValEl = document.getElementById('user-rank-val');
                 if (rankValEl) rankValEl.innerText = `#${index + 1}`;
             }
         });
+
+        // LAST, INVERT, PLAY steps of FLIP
+        if (Object.keys(firstPositions).length > 0 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            newElements.forEach(itemInfo => {
+                const first = firstPositions[itemInfo.name];
+                if (first !== undefined) {
+                    const last = itemInfo.el.getBoundingClientRect().top;
+                    const invert = first - last;
+                    if (invert !== 0) {
+                        itemInfo.el.style.transform = `translateY(${invert}px)`;
+                        itemInfo.el.style.transition = 'none';
+                        // Force reflow
+                        itemInfo.el.offsetHeight;
+                        
+                        // Play transition
+                        itemInfo.el.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                        itemInfo.el.style.transform = '';
+                    }
+                }
+            });
+        }
     }
 
     let levelName = 'Level 1: Seedling';
@@ -1297,6 +1510,26 @@ function renderApp() {
     else if (state.xp > 100) levelName = 'Level 2: Sprout';
     
     document.getElementById('user-level').innerText = levelName;
+
+    // Update achievements badges grid
+    const badgeIds = ['badge-seedling', 'badge-sprout', 'badge-sapling', 'badge-oaktree', 'badge-forestguardian'];
+    badgeIds.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        if (el) {
+            const badgeLevel = idx + 1;
+            if (badgeLevel <= currentLevelIdx) {
+                el.classList.remove('locked');
+                if (badgeLevel === currentLevelIdx) {
+                    el.classList.add('active-current');
+                } else {
+                    el.classList.remove('active-current');
+                }
+            } else {
+                el.classList.add('locked');
+                el.classList.remove('active-current');
+            }
+        }
+    });
 
     const claimBtn = document.getElementById('claim-challenge-btn');
     if (claimBtn) {
@@ -1412,4 +1645,145 @@ function initCharts() {
             }
         }
     });
+}
+
+// ----------------------------------------------------
+// ACHIEVEMENTS & LEVEL UP HELPERS
+// ----------------------------------------------------
+
+function getLevelIndex(xp) {
+    if (xp > 1500) return 5;
+    if (xp > 700) return 4;
+    if (xp > 300) return 3;
+    if (xp > 100) return 2;
+    return 1;
+}
+
+function triggerLevelUpModal(levelIndex) {
+    const overlay = document.getElementById('levelup-overlay');
+    if (!overlay) return;
+    
+    const card = overlay.querySelector('.levelup-card');
+    const badgeContainer = document.getElementById('levelup-badge-container');
+    const titleEl = document.getElementById('levelup-title-el');
+    const descEl = document.getElementById('levelup-desc-el');
+    
+    const levels = [
+        { name: 'Level 1: Seedling', desc: 'You are a seedling, just beginning your environmental awareness journey.' },
+        { name: 'Level 2: Sprout', desc: 'You have sprouted! Keep tracking and committing to daily actions.' },
+        { name: 'Level 3: Sapling', desc: 'You are a sapling. Your green choices are growing and making a real difference!' },
+        { name: 'Level 4: Oak Tree', desc: 'You are an Oak Tree! Strong, resilient, and carbon-conscious.' },
+        { name: 'Level 5: Forest Guardian', desc: 'You are a Forest Guardian! You have achieved peak ecological harmony.' }
+    ];
+    
+    const levelInfo = levels[levelIndex - 1];
+    const badgeId = ['badge-seedling', 'badge-sprout', 'badge-sapling', 'badge-oaktree', 'badge-forestguardian'][levelIndex - 1];
+    
+    const badgeEl = document.getElementById(badgeId);
+    if (badgeEl) {
+        const badgeSvg = badgeEl.querySelector('svg').cloneNode(true);
+        badgeContainer.innerHTML = '';
+        badgeContainer.appendChild(badgeSvg);
+    }
+    
+    if (titleEl) titleEl.innerText = levelInfo.name;
+    if (descEl) descEl.innerText = levelInfo.desc;
+    
+    if (card) card.classList.remove('flipped');
+    
+    overlay.classList.remove('hidden');
+    setTimeout(() => overlay.classList.add('visible'), 50);
+    
+    triggerConfetti();
+}
+
+function setupLevelUpModal() {
+    const overlay = document.getElementById('levelup-overlay');
+    if (!overlay) return;
+    
+    const card = overlay.querySelector('.levelup-card');
+    const claimBtn = document.getElementById('levelup-claim-btn');
+    
+    if (card) {
+        card.addEventListener('click', (e) => {
+            if (e.target.id === 'levelup-claim-btn') return;
+            card.classList.toggle('flipped');
+        });
+    }
+    
+    if (claimBtn) {
+        claimBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            overlay.classList.remove('visible');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                const cardInner = card ? card.querySelector('.card-inner') : null;
+                if (card) card.classList.remove('flipped');
+            }, 500);
+        });
+    }
+}
+
+function updateSimEcoIsland(score) {
+    const sky = document.getElementById('sim-island-sky');
+    const smog = document.getElementById('sim-island-smog');
+    const sun = document.getElementById('sim-island-sun');
+    const birds = document.getElementById('sim-birds-group');
+    const grass = document.getElementById('sim-island-grass');
+    const t1 = document.getElementById('sim-tree1-leaves');
+    const t2 = document.getElementById('sim-tree2-leaves');
+    const t3 = document.getElementById('sim-tree3-leaves');
+
+    if (!sky || !smog || !sun || !birds || !grass || !t1 || !t2 || !t3) return;
+
+    let targetSkyColor = '#a4c6df';
+    let targetSmogOpacity = 0;
+    let targetSunColor = '#fde047';
+    let targetBirdsOpacity = 1;
+    let targetGrassColor = '#4ade80';
+    let t1Radius = 20, t1Color = '#15803d';
+    let t2Radius = 28, t2Color = '#166534';
+    let t3Radius = 16, t3Color = '#15803d';
+
+    if (score < 4.0) {
+        // healthy (defaults)
+    } else if (score <= 10.0) {
+        targetSkyColor = '#94a3b8';
+        targetSmogOpacity = 0.35;
+        targetSunColor = '#e2e8f0';
+        targetBirdsOpacity = 0;
+        targetGrassColor = '#a3e635';
+        t1Radius = 12; t1Color = '#854d0e';
+        t2Radius = 20; t2Color = '#166534';
+        t3Radius = 8; t3Color = '#854d0e';
+    } else {
+        targetSkyColor = '#334155';
+        targetSmogOpacity = 0.75;
+        targetSunColor = '#475569';
+        targetBirdsOpacity = 0;
+        targetGrassColor = '#78350f';
+        t1Radius = 2; t1Color = '#451a03';
+        t2Radius = 4; t2Color = '#451a03';
+        t3Radius = 2; t3Color = '#451a03';
+    }
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof gsap === 'undefined') {
+        sky.setAttribute('fill', targetSkyColor);
+        smog.setAttribute('opacity', targetSmogOpacity);
+        sun.setAttribute('fill', targetSunColor);
+        birds.setAttribute('opacity', targetBirdsOpacity);
+        grass.setAttribute('fill', targetGrassColor);
+        t1.setAttribute('r', t1Radius); t1.setAttribute('fill', t1Color);
+        t2.setAttribute('r', t2Radius); t2.setAttribute('fill', t2Color);
+        t3.setAttribute('r', t3Radius); t3.setAttribute('fill', t3Color);
+    } else {
+        gsap.to(sky, { fill: targetSkyColor, duration: 0.8, ease: "power2.out" });
+        gsap.to(smog, { opacity: targetSmogOpacity, duration: 0.8, ease: "power2.out" });
+        gsap.to(sun, { fill: targetSunColor, duration: 0.8, ease: "power2.out" });
+        gsap.to(birds, { opacity: targetBirdsOpacity, duration: 0.5 });
+        gsap.to(grass, { fill: targetGrassColor, duration: 0.8 });
+        gsap.to(t1, { r: t1Radius, fill: t1Color, duration: 0.8, ease: "back.out(1.5)" });
+        gsap.to(t2, { r: t2Radius, fill: t2Color, duration: 0.8, ease: "back.out(1.5)" });
+        gsap.to(t3, { r: t3Radius, fill: t3Color, duration: 0.8, ease: "back.out(1.5)" });
+    }
 }

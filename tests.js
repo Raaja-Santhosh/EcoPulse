@@ -129,4 +129,18 @@ Suite.add('Edge Case: Empty Waste Selector Handled Safely', () => {
 
 if (typeof window !== 'undefined') {
     window.Suite = Suite;
+} else if (typeof process !== 'undefined') {
+    Suite.run((report) => {
+        console.log(`\n--- EcoPulse Test Report ---`);
+        console.log(`Total Tests: ${report.total}`);
+        console.log(`Passed:      ${report.passed}`);
+        console.log(`Failed:      ${report.failed}\n`);
+        report.results.forEach(r => {
+            console.log(`[${r.status}] ${r.name}`);
+            if (r.error) {
+                console.log(`  Error: ${r.error}`);
+            }
+        });
+        process.exit(report.failed > 0 ? 1 : 0);
+    });
 }
