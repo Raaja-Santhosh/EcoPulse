@@ -59,7 +59,7 @@
                 </div>
                 <div class="showcase-image-col">
                     <div class="showcase-image-wrapper">
-                        <img src="assets/eco_island.png" alt="Ecological Balance Concept" id="showcase-img-island">
+                        <img src="assets/eco_island.png?v=3.0" alt="Ecological Balance Concept" id="showcase-img-island">
                     </div>
                 </div>
             </div>
@@ -70,7 +70,7 @@
             <div class="story-showcase-split reverse">
                 <div class="showcase-image-col">
                     <div class="showcase-image-wrapper">
-                        <img src="assets/carbon_sources.png" alt="Carbon Emission Sources" id="showcase-img-sources">
+                        <img src="assets/carbon_sources.png?v=3.0" alt="Carbon Emission Sources" id="showcase-img-sources">
                     </div>
                 </div>
                 <div class="showcase-text-col">
@@ -167,12 +167,12 @@
                 <span class="logo-text">EcoPulse</span>
             </div>
             <nav class="nav-links" role="tablist" aria-label="Main Navigation">
-                <button class="nav-btn active" data-tab="home-tab" id="nav-home" role="tab" aria-selected="true">Home</button>
-                <button class="nav-btn" data-tab="dashboard-tab" id="nav-dashboard" role="tab" aria-selected="false">Dashboard</button>
-                <button class="nav-btn" data-tab="actions-tab" id="nav-actions" role="tab" aria-selected="false">Action Center</button>
-                <button class="nav-btn" data-tab="nudges-tab" id="nav-nudges" role="tab" aria-selected="false">Decision Sandbox</button>
-                <button class="nav-btn" data-tab="tracker-tab" id="nav-tracker" role="tab" aria-selected="false">Activity Log</button>
-                <button class="nav-btn" data-tab="assistant-tab" id="nav-assistant" role="tab" aria-selected="false">Eco-Assistant</button>
+                <button class="nav-btn active" data-tab="home-tab" id="nav-home" role="tab" aria-selected="true" aria-controls="home-tab">Home</button>
+                <button class="nav-btn" data-tab="dashboard-tab" id="nav-dashboard" role="tab" aria-selected="false" aria-controls="dashboard-tab">Dashboard</button>
+                <button class="nav-btn" data-tab="actions-tab" id="nav-actions" role="tab" aria-selected="false" aria-controls="actions-tab">Action Center</button>
+                <button class="nav-btn" data-tab="nudges-tab" id="nav-nudges" role="tab" aria-selected="false" aria-controls="nudges-tab">Decision Sandbox</button>
+                <button class="nav-btn" data-tab="tracker-tab" id="nav-tracker" role="tab" aria-selected="false" aria-controls="tracker-tab">Activity Log</button>
+                <button class="nav-btn" data-tab="assistant-tab" id="nav-assistant" role="tab" aria-selected="false" aria-controls="assistant-tab">Eco-Assistant</button>
             </nav>
             <div class="header-right">
                 <div class="xp-progress-wrapper">
@@ -334,7 +334,7 @@
             </section>
 
             <!-- HOME TAB (INFORMATIVE CURRICULUM) -->
-            <section id="home-tab" class="tab-content">
+            <section id="home-tab" class="tab-content" role="tabpanel" aria-labelledby="nav-home">
                 <div class="home-layout">
                     <!-- Home Hero Banner -->
                     <div class="home-hero">
@@ -370,7 +370,7 @@
                         </div>
                         <div class="showcase-image-col">
                             <div class="image-frame" style="max-width: 450px; width: 100%;">
-                                <img src="assets/carbon_footprint_concept.png" alt="Carbon Footprint Abstract Art">
+                                <img src="assets/carbon_footprint_concept.png?v=3.0" alt="Carbon Footprint Abstract Art">
                             </div>
                         </div>
                     </div>
@@ -379,7 +379,7 @@
                     <div class="story-showcase-split reverse">
                         <div class="showcase-image-col">
                             <div class="image-frame" style="max-width: 450px; width: 100%;">
-                                <img src="assets/ecological_balance_concept.png" alt="Ecological Balance Infographic">
+                                <img src="assets/ecological_balance_concept.png?v=3.0" alt="Ecological Balance Infographic">
                             </div>
                         </div>
                         <div class="showcase-text-col">
@@ -518,7 +518,7 @@
             </section>
 
             <!-- DASHBOARD TAB -->
-            <section id="dashboard-tab" class="tab-content hidden">
+            <section id="dashboard-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="nav-dashboard">
                 <div class="dashboard-grid">
                     <!-- HERO STAT CARD -->
                     <div class="card hero-card">
@@ -963,7 +963,7 @@
             </section>
 
             <!-- ACTION CENTER TAB -->
-            <section id="actions-tab" class="tab-content hidden">
+            <section id="actions-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="nav-actions">
                 <div class="section-header">
                     <div>
                         <h2 class="editorial-title">Personalized Reduction Plan</h2>
@@ -984,7 +984,7 @@
             </section>
 
             <!-- DECISION SANDBOX TAB -->
-            <section id="nudges-tab" class="tab-content hidden">
+            <section id="nudges-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="nav-nudges">
                 <div class="section-header">
                     <div>
                         <h2 class="editorial-title">Decision Point Sandbox</h2>
@@ -1057,7 +1057,7 @@
             </section>
 
             <!-- TRACKER/DAILY LOG TAB -->
-            <section id="tracker-tab" class="tab-content hidden">
+            <section id="tracker-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="nav-tracker">
                 <div class="tracker-layout">
                     <!-- LOGGED TODAY SUMMARY CARD -->
                     <div class="card logged-today-card">
@@ -1109,7 +1109,7 @@
             </section>
 
             <!-- ASSISTANT TAB -->
-            <section id="assistant-tab" class="tab-content hidden">
+            <section id="assistant-tab" class="tab-content hidden" role="tabpanel" aria-labelledby="nav-assistant">
                 <div class="assistant-layout">
                     <!-- GEMINI API SETUP DRAWER -->
                     <div class="card config-card" style="margin-bottom: 1.5rem;">
