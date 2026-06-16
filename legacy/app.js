@@ -543,11 +543,16 @@ function renderLogHistory() {
         const valText = isSaving ? `${log.value.toFixed(2)} kg CO₂e` : `+${log.value.toFixed(2)} kg CO₂e`;
         const valClass = isSaving ? 'saving' : '';
 
+        // Escape log.description to prevent XSS
+        const tempDiv = document.createElement('div');
+        tempDiv.textContent = log.description;
+        const escapedDescription = tempDiv.innerHTML;
+
         item.innerHTML = `
             <div class="log-item-left">
                 <span class="log-item-icon" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background-color: var(--bg-main); border-radius: 8px; border: 1px solid var(--border-color);">${iconSvg}</span>
                 <div class="log-item-details">
-                    <span class="log-item-title">${log.description}</span>
+                    <span class="log-item-title">${escapedDescription}</span>
                     <span class="log-item-meta">${log.date} • ${log.category}</span>
                 </div>
             </div>
@@ -999,9 +1004,14 @@ function handleUserMessage(msg) {
                 troubleshootingHelp = `Make sure your key is valid and has not expired or been restricted.`;
             }
 
+            // Escape err.message to prevent XSS
+            const tempDiv = document.createElement('div');
+            tempDiv.textContent = err.message;
+            const escapedErrMessage = tempDiv.innerHTML;
+
             errorDiv.innerHTML = `
                 <p style="color: var(--color-danger); font-weight:600;">⚠️ Gemini API Request Failed</p>
-                <p style="font-size:0.85rem; color: var(--text-secondary); margin-top:0.25rem;">Details: ${err.message}</p>
+                <p style="font-size:0.85rem; color: var(--text-secondary); margin-top:0.25rem;">Details: ${escapedErrMessage}</p>
                 <p style="font-size:0.85rem; color: var(--text-secondary); margin-top:0.5rem;">${troubleshootingHelp}</p>
                 <p style="font-size:0.8rem; color: var(--text-secondary); margin-top:0.75rem; font-style:italic;">Falling back temporarily to simulated offline response below:</p>
             `;
