@@ -7,11 +7,13 @@ import ActionCenterTab from './components/ActionCenterTab';
 import NudgesTab from './components/NudgesTab';
 import TrackerTab from './components/TrackerTab';
 import AssistantTab from './components/AssistantTab';
+import LandingPage from './components/LandingPage';
 import { Leaf, Award } from 'lucide-react';
 
 const App: React.FC = () => {
   const { onboarded, xp, level, levelName } = useEcoPulseStore();
   const [activeTab, setActiveTab] = useState<'home' | 'dashboard' | 'actions' | 'nudges' | 'tracker' | 'assistant'>('home');
+  const [enteredApp, setEnteredApp] = useState<boolean>(false);
 
   // Calculate XP progress percentage
   const getXpProgressPercent = (): number => {
@@ -39,7 +41,20 @@ const App: React.FC = () => {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab onNavigateToDashboard={() => setActiveTab('dashboard')} />;
+        return (
+          <div className="flex flex-col gap-6">
+            <div className="flex justify-between items-center bg-[#faf9f5] border-2 border-[#2b3a34] p-4 shadow-[2px_2px_0px_#2b3a34]">
+              <span className="text-sm font-bold text-[#4a6b5d]">Welcome to the EcoPulse Literacy Hub</span>
+              <button
+                onClick={() => setEnteredApp(false)}
+                className="py-1.5 px-3 bg-[#c87a53] text-white border-2 border-[#2b3a34] font-bold text-xs uppercase shadow-[1px_1px_0px_#2b3a34] hover:translate-y-[-1px] transition-all"
+              >
+                Back to Landing Page
+              </button>
+            </div>
+            <HomeTab onNavigateToDashboard={() => setActiveTab('dashboard')} />
+          </div>
+        );
       case 'dashboard':
         return <DashboardTab />;
       case 'actions':
@@ -54,6 +69,10 @@ const App: React.FC = () => {
         return <HomeTab onNavigateToDashboard={() => setActiveTab('dashboard')} />;
     }
   };
+
+  if (!enteredApp) {
+    return <LandingPage onEnterApp={() => setEnteredApp(true)} />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fcfbf7] text-[#2b3a34] font-sans">
