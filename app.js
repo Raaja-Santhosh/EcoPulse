@@ -1,4 +1,5 @@
 // EcoPulse Application Logic
+import { CarbonMath } from './math.js';
 
 // Initial State
 let state = {
@@ -267,7 +268,7 @@ function triggerConfetti() {
             particleCount: 150,
             spread: 80,
             origin: { y: 0.6 },
-            colors: ['#c2d8b4', '#df8a60', '#e8ddc5']
+            colors: ['#38bdf8', '#ff6b6b', '#eae6df']
         });
     }
 }
@@ -319,7 +320,7 @@ function renderActions(filter = 'all') {
         const btn = card.querySelector('.action-check-btn');
         if (act.completed) {
             btn.style.backgroundColor = 'var(--color-success)';
-            btn.style.color = '#131412';
+            btn.style.color = 'var(--bg-main)';
         }
         
         btn.addEventListener('click', () => {
@@ -345,12 +346,12 @@ function toggleAction(id, cardEl) {
                 const btn = cardEl.querySelector('.action-check-btn');
                 btn.innerText = '✓ Active';
                 btn.style.backgroundColor = 'var(--color-accent-sage)';
-                btn.style.color = '#131412';
+                btn.style.color = 'var(--bg-main)';
                 
                 gsap.to(cardEl, {
                     scale: 1.05,
                     borderColor: 'var(--color-accent-sage)',
-                    backgroundColor: 'rgba(194, 216, 180, 0.1)',
+                    backgroundColor: 'rgba(56, 189, 248, 0.1)',
                     duration: 0.25,
                     yoyo: true,
                     repeat: 1,
@@ -436,42 +437,35 @@ function setupLogForm() {
         let desc = '';
 
         if (category === 'transport') {
+            calculatedEmissions = CarbonMath.calculateTransportEmissions(rawValue, subType);
             if (subType === 'petrol') {
-                calculatedEmissions = rawValue * 0.411;
                 desc = `Drove petrol car (${rawValue} mi)`;
             } else if (subType === 'electric') {
-                calculatedEmissions = rawValue * 0.12; 
                 desc = `Drove electric vehicle (${rawValue} mi)`;
             } else {
-                calculatedEmissions = rawValue * 0.08; 
                 desc = `Used public transit (${rawValue} mi)`;
             }
         } else if (category === 'diet') {
+            calculatedEmissions = CarbonMath.calculateDietEmissions(subType);
             if (subType === 'beef') {
-                calculatedEmissions = 7.2;
                 desc = `Red meat meal (Beef/Pork)`;
             } else if (subType === 'chicken') {
-                calculatedEmissions = 2.4;
                 desc = `Poultry / Fish meal`;
             } else if (subType === 'veggie') {
-                calculatedEmissions = 1.1;
                 desc = `Vegetarian meal`;
             } else {
-                calculatedEmissions = 0.5;
                 desc = `Vegan plant-based meal`;
             }
         } else if (category === 'energy') {
-            calculatedEmissions = rawValue * 0.385;
+            calculatedEmissions = CarbonMath.calculateEnergyEmissions(rawValue);
             desc = `Utility Electricity (${rawValue} kWh)`;
         } else if (category === 'waste') {
+            calculatedEmissions = CarbonMath.calculateWasteSavings(subType);
             if (subType === 'compost') {
-                calculatedEmissions = -0.5;
                 desc = `Composted organic waste`;
             } else if (subType === 'recycle') {
-                calculatedEmissions = -0.3;
                 desc = `Recycled recyclables`;
             } else {
-                calculatedEmissions = 1.5;
                 desc = `Disposed landfill trash`;
             }
         }
@@ -602,7 +596,7 @@ function setupSimulator() {
 
         const totalBase = state.footprint.energy + state.footprint.transport + state.footprint.diet + state.footprint.waste;
         
-        const transportSavings = (15 - parseFloat(commuteSlider.value)) * 0.411 * 260 / 1000;
+        const transportSavings = CarbonMath.calculateTransportEmissions(15 - parseFloat(commuteSlider.value), 'petrol') * 260 / 1000;
         const dietSavings = ((parseFloat(dietSlider.value) - 25) / 100) * 1.5;
         const tempSavings = parseFloat(tempSlider.value) * 0.45;
 
@@ -794,6 +788,50 @@ function logCarbonDecision(type, isEco) {
     renderApp();
 }
 
+// Helper to safely render basic Markdown and escape arbitrary HTML/scripts to prevent XSS
+function safeRenderMarkdown(text) {
+    // Escape HTML
+    const div = document.createElement('div');
+    div.textContent = text;
+    let escaped = div.innerHTML;
+
+    // Bold: **text** -> <strong>text</strong>
+    escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Italic: *text* -> <em>text</em>
+    escaped = escaped.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    // Bullet points: lines starting with "- " or "* " -> <li>content</li>
+    const lines = escaped.split('\n');
+    let inList = false;
+    let htmlResult = '';
+
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (line.startsWith('- ') || line.startsWith('* ')) {
+            if (!inList) {
+                htmlResult += '<ul>';
+                inList = true;
+            }
+            htmlResult += `<li>${line.substring(2)}</li>`;
+        } else {
+            if (inList) {
+                htmlResult += '</ul>';
+                inList = false;
+            }
+            if (line === '') {
+                htmlResult += '<br>';
+            } else {
+                htmlResult += `<p>${line}</p>`;
+            }
+        }
+    }
+    if (inList) {
+        htmlResult += '</ul>';
+    }
+    return htmlResult;
+}
+
 // AI Assistant / chatbot logic
 function setupAssistant() {
     const form = document.getElementById('chat-input-form');
@@ -884,28 +922,91 @@ function handleUserMessage(msg) {
             }]
         };
 
-        fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestPayload)
+        const makeRequest = (version, model) => {
+            return fetch(`https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestPayload)
+            });
+        };
+
+        // Automatic endpoint fallback chain to resolve HTTP 404s dynamically
+        makeRequest('v1beta', 'gemini-1.5-flash')
+        .then(res => {
+            if (res.status === 404) {
+                console.log('v1beta gemini-1.5-flash failed with 404, trying v1...');
+                return makeRequest('v1', 'gemini-1.5-flash');
+            }
+            return res;
         })
         .then(res => {
-            if (!res.ok) throw new Error('API Request Failed');
+            if (res.status === 404) {
+                console.log('v1 gemini-1.5-flash failed with 404, trying v1beta gemini-1.5-pro...');
+                return makeRequest('v1beta', 'gemini-1.5-pro');
+            }
+            return res;
+        })
+        .then(res => {
+            if (res.status === 404) {
+                console.log('gemini-1.5-pro failed with 404, trying v1 gemini-pro...');
+                return makeRequest('v1', 'gemini-pro');
+            }
+            return res;
+        })
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(errData => {
+                    const errMsg = errData.error ? errData.error.message : 'HTTP ' + res.status;
+                    throw new Error(errMsg);
+                }).catch(() => {
+                    throw new Error('HTTP ' + res.status + ' (API key may be invalid, restricted, or billing is not active)');
+                });
+            }
             return res.json();
         })
         .then(data => {
             typingIndicator.remove();
-            const reply = data.candidates[0].content.parts[0].text;
             
-            const assistantDiv = document.createElement('div');
-            assistantDiv.className = 'message assistant-msg';
-            assistantDiv.innerHTML = `<p>${reply.replace(/\n/g, '<br>')}</p>`;
-            container.appendChild(assistantDiv);
+            if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+                const reply = data.candidates[0].content.parts[0].text;
+                const assistantDiv = document.createElement('div');
+                assistantDiv.className = 'message assistant-msg';
+                assistantDiv.innerHTML = safeRenderMarkdown(reply);
+                container.appendChild(assistantDiv);
+            } else {
+                throw new Error('Empty response received from Gemini API. (Check safety settings or key restrictions)');
+            }
             container.scrollTop = container.scrollHeight;
         })
         .catch(err => {
             console.error(err);
             typingIndicator.remove();
+            
+            // Add visual feedback indicating that API key request failed
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message assistant-msg';
+            errorDiv.style.borderLeft = '4px solid var(--color-danger)';
+            errorDiv.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+            
+            let troubleshootingHelp = '';
+            if (err.message.includes('404')) {
+                troubleshootingHelp = `
+                <br><strong style="color: var(--color-danger);">Troubleshooting 404:</strong><br>
+                1. Make sure your API key is generated via <a href="https://aistudio.google.com/" target="_blank" style="color: var(--color-accent-tertiary); text-decoration: underline;">Google AI Studio</a> (which is free and enables the API automatically).<br>
+                2. If using Google Cloud Console, ensure that the <strong>Generative Language API</strong> is explicitly enabled in your project's API Library.
+                `;
+            } else {
+                troubleshootingHelp = `Make sure your key is valid and has not expired or been restricted.`;
+            }
+
+            errorDiv.innerHTML = `
+                <p style="color: var(--color-danger); font-weight:600;">⚠️ Gemini API Request Failed</p>
+                <p style="font-size:0.85rem; color: var(--text-secondary); margin-top:0.25rem;">Details: ${err.message}</p>
+                <p style="font-size:0.85rem; color: var(--text-secondary); margin-top:0.5rem;">${troubleshootingHelp}</p>
+                <p style="font-size:0.8rem; color: var(--text-secondary); margin-top:0.75rem; font-style:italic;">Falling back temporarily to simulated offline response below:</p>
+            `;
+            container.appendChild(errorDiv);
+            
             fallbackRuleResponse(msg, container);
         });
     } else {
@@ -920,7 +1021,7 @@ function fallbackRuleResponse(msg, container) {
     const reply = getAssistantResponse(msg.toLowerCase());
     const assistantDiv = document.createElement('div');
     assistantDiv.className = 'message assistant-msg';
-    assistantDiv.innerHTML = `<p>${reply}</p>`;
+    assistantDiv.innerHTML = safeRenderMarkdown(reply);
     container.appendChild(assistantDiv);
     container.scrollTop = container.scrollHeight;
 }
@@ -993,10 +1094,10 @@ function setupVantaBackground() {
             gyroControls: false,
             minHeight: 200.00,
             minWidth: 200.00,
-            highlightColor: 0xc2d8b4,
-            mitchellColor: 0xdf8a60,
-            baseColor: 0x131412,
-            lowlightColor: 0x1b1d19,
+            highlightColor: 0xbae6fd,
+            mitchellColor: 0xfecdd3,
+            baseColor: 0xf8fafc,
+            lowlightColor: 0xe2e8f0,
             blurFactor: 0.60,
             speed: 1.20,
             zoom: 1.10
@@ -1245,16 +1346,32 @@ function updateEcoIsland(score) {
     const statusText = document.getElementById('island-status-desc');
     const healthBadge = document.getElementById('island-health-badge');
 
+    // Dwellers selectors
+    const seedlings = document.getElementById('dweller-seedlings');
+    const bunnies = document.getElementById('dweller-bunnies');
+    const foxes = document.getElementById('dweller-foxes');
+    const flowerBuds = document.querySelectorAll('#eco-dwellers .flower-bud');
+    const bunnyParts = document.querySelectorAll('#eco-dwellers .bunny-body, #eco-dwellers .bunny-head, #eco-dwellers .bunny-ear');
+    const foxParts = document.querySelectorAll('#eco-dwellers .fox-fur, #eco-dwellers .fox-ear');
+
     if (!sky || !smog || !sun || !birds || !grass || !t1 || !t2 || !t3 || !statusText || !healthBadge) return;
 
     let targetSkyColor = '#a4c6df';
     let targetSmogOpacity = 0;
     let targetSunColor = '#fde047';
     let targetBirdsOpacity = 1;
-    let targetGrassColor = '#4ade80';
-    let t1Radius = 20, t1Color = '#15803d';
-    let t2Radius = 28, t2Color = '#166534';
-    let t3Radius = 16, t3Color = '#15803d';
+    let targetGrassColor = '#00f5a0';
+    let t1Radius = 20, t1Color = '#10b981';
+    let t2Radius = 28, t2Color = '#059669';
+    let t3Radius = 16, t3Color = '#10b981';
+
+    // Dwellers targets
+    let targetDwellersOpacity = 1;
+    let targetDwellersScale = 1;
+    let targetBudColor = '#facc15'; // Default bud color
+    let targetBunnyColor = '#ffffff'; // Default bunny body color
+    let targetFoxColor = '#f97316'; // Default fox color
+    let animateDwellers = false;
 
     const nonSystemLogs = state.logs.filter(l => !l.isSystem);
     const hasLogs = nonSystemLogs.length > 0;
@@ -1274,45 +1391,65 @@ function updateEcoIsland(score) {
         t1Radius = 0; t1Color = '#451a03';
         t2Radius = 0; t2Color = '#451a03';
         t3Radius = 0; t3Color = '#451a03';
+
+        // Dwellers Dormant state
+        targetDwellersOpacity = 0;
+        targetDwellersScale = 0.1;
     } else if (score < 4.0) {
         healthBadge.innerText = 'Healthy';
         healthBadge.style.color = 'var(--color-success)';
         healthBadge.style.borderColor = 'var(--color-success)';
         healthBadge.style.backgroundColor = 'rgba(154, 219, 165, 0.1)';
-        statusText.innerText = 'Your atmosphere is fresh, and plants are thriving.';
+        statusText.innerText = 'Your atmosphere is fresh, and plants and eco-dwellers are thriving!';
+
+        // Dwellers Healthy state
+        targetDwellersOpacity = 1;
+        targetDwellersScale = 1;
+        animateDwellers = true;
     } else if (score <= 10.0) {
         targetSkyColor = '#94a3b8';
         targetSmogOpacity = 0.35;
         targetSunColor = '#e2e8f0';
         targetBirdsOpacity = 0;
-        targetGrassColor = '#a3e635';
-        t1Radius = 12; t1Color = '#854d0e';
-        t2Radius = 20; t2Color = '#166534';
-        t3Radius = 8; t3Color = '#854d0e';
+        targetGrassColor = '#f59e0b';
+        t1Radius = 12; t1Color = '#d97706';
+        t2Radius = 20; t2Color = '#d97706';
+        t3Radius = 8; t3Color = '#b45309';
 
         healthBadge.innerText = 'Moderate';
         healthBadge.style.color = 'var(--color-accent-terracotta)';
         healthBadge.style.borderColor = 'var(--color-accent-terracotta)';
         healthBadge.style.backgroundColor = 'rgba(223, 138, 96, 0.1)';
-        statusText.innerText = 'Moderate emissions. Smog is forming, and smaller trees are starting to dry.';
+        statusText.innerText = 'Moderate emissions. Smog is forming, and dwellers are hiding or look sick.';
+
+        // Dwellers Moderate state (hiding/sick)
+        targetDwellersOpacity = 0.45;
+        targetDwellersScale = 0.85;
+        targetBudColor = '#78716c'; // withered grey
+        targetBunnyColor = '#d6d3d1'; // sick greyish white
+        targetFoxColor = '#b45309'; // sickly dark orange/brown
     } else {
         targetSkyColor = '#334155';
         targetSmogOpacity = 0.75;
         targetSunColor = '#475569';
         targetBirdsOpacity = 0;
-        targetGrassColor = '#78350f';
-        t1Radius = 2; t1Color = '#451a03';
-        t2Radius = 4; t2Color = '#451a03';
-        t3Radius = 2; t3Color = '#451a03';
+        targetGrassColor = '#7f1d1d';
+        t1Radius = 2; t1Color = '#991b1b';
+        t2Radius = 4; t2Color = '#991b1b';
+        t3Radius = 2; t3Color = '#991b1b';
 
         healthBadge.innerText = 'Severe';
         healthBadge.style.color = 'var(--color-danger)';
         healthBadge.style.borderColor = 'var(--color-danger)';
         healthBadge.style.backgroundColor = 'rgba(226, 124, 124, 0.1)';
-        statusText.innerText = 'High emissions warning! Acid rain and toxic smog have withered the island ecosystem.';
+        statusText.innerText = 'High emissions warning! Acid rain has withered the island and all eco-dwellers have fled.';
+
+        // Dwellers Severe state (completely vanished/migrated)
+        targetDwellersOpacity = 0;
+        targetDwellersScale = 0;
     }
 
-    // GSAP-Eased Island Transitions
+    // GSAP-Eased Island & Dwellers Transitions
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof gsap === 'undefined') {
         sky.setAttribute('fill', targetSkyColor);
         smog.setAttribute('opacity', targetSmogOpacity);
@@ -1322,6 +1459,15 @@ function updateEcoIsland(score) {
         t1.setAttribute('r', t1Radius); t1.setAttribute('fill', t1Color);
         t2.setAttribute('r', t2Radius); t2.setAttribute('fill', t2Color);
         t3.setAttribute('r', t3Radius); t3.setAttribute('fill', t3Color);
+
+        if (seedlings && bunnies && foxes) {
+            seedlings.setAttribute('opacity', targetDwellersOpacity);
+            bunnies.setAttribute('opacity', targetDwellersOpacity);
+            foxes.setAttribute('opacity', targetDwellersOpacity);
+            flowerBuds.forEach(el => el.setAttribute('fill', targetBudColor));
+            bunnyParts.forEach(el => el.setAttribute('fill', targetBunnyColor));
+            foxParts.forEach(el => el.setAttribute('fill', targetFoxColor));
+        }
     } else {
         gsap.to(sky, { fill: targetSkyColor, duration: 1.2, ease: "power2.out" });
         gsap.to(smog, { opacity: targetSmogOpacity, duration: 1.2, ease: "power2.out" });
@@ -1331,6 +1477,58 @@ function updateEcoIsland(score) {
         gsap.to(t1, { r: t1Radius, fill: t1Color, duration: 1.2, ease: "back.out(1.5)" });
         gsap.to(t2, { r: t2Radius, fill: t2Color, duration: 1.2, ease: "back.out(1.5)" });
         gsap.to(t3, { r: t3Radius, fill: t3Color, duration: 1.2, ease: "back.out(1.5)" });
+
+        if (seedlings && bunnies && foxes) {
+            gsap.to([seedlings, bunnies, foxes], { opacity: targetDwellersOpacity, duration: 1.2, ease: "power2.out" });
+            gsap.to([seedlings, bunnies, foxes], { scale: targetDwellersScale, transformOrigin: "bottom center", duration: 1.2, ease: "back.out(1.5)" });
+            gsap.to(flowerBuds, { fill: targetBudColor, duration: 1.2 });
+            gsap.to(bunnyParts, { fill: targetBunnyColor, duration: 1.2 });
+            gsap.to(foxParts, { fill: targetFoxColor, duration: 1.2 });
+
+            if (animateDwellers) {
+                // Hop bunnies
+                gsap.killTweensOf('#eco-dwellers .bunny-creature');
+                gsap.to('#eco-dwellers .bunny-creature', {
+                    y: -4,
+                    duration: 0.6,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: "power1.inOut",
+                    stagger: 0.2
+                });
+                // Sway seedlings
+                gsap.killTweensOf('#eco-dwellers #dweller-seedlings > g');
+                gsap.to('#eco-dwellers #dweller-seedlings > g', {
+                    rotation: 5,
+                    transformOrigin: "bottom center",
+                    duration: 1.5,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: "sine.inOut",
+                    stagger: 0.3
+                });
+                // Breathe foxes
+                gsap.killTweensOf('#eco-dwellers .fox-creature');
+                gsap.to('#eco-dwellers .fox-creature', {
+                    scaleX: 1.05,
+                    duration: 0.8,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: "sine.inOut"
+                });
+            } else {
+                gsap.killTweensOf('#eco-dwellers .bunny-creature');
+                gsap.killTweensOf('#eco-dwellers #dweller-seedlings > g');
+                gsap.killTweensOf('#eco-dwellers .fox-creature');
+                gsap.to(['#eco-dwellers .bunny-creature', '#eco-dwellers #dweller-seedlings > g', '#eco-dwellers .fox-creature'], {
+                    y: 0,
+                    rotation: 0,
+                    scaleX: 1,
+                    scaleY: 1,
+                    duration: 0.5
+                });
+            }
+        }
     }
 }
 
@@ -1543,7 +1741,7 @@ function renderApp() {
         if (state.challengeCompleted) {
             claimBtn.innerText = '✓ Challenge Completed!';
             claimBtn.style.backgroundColor = 'var(--color-success)';
-            claimBtn.style.color = '#131412';
+            claimBtn.style.color = 'var(--bg-main)';
             claimBtn.setAttribute('disabled', 'true');
         } else {
             claimBtn.innerText = 'I did this today!';
@@ -1585,12 +1783,12 @@ function initCharts() {
             datasets: [{
                 data: compositionData,
                 backgroundColor: [
-                    '#c2d8b4', 
-                    '#df8a60', 
-                    '#e8ddc5', 
-                    '#79a6d2'  
+                    '#3b82f6', 
+                    '#e11d48', 
+                    '#4f46e5', 
+                    '#64748b'  
                 ],
-                borderColor: '#1b1d19',
+                borderColor: '#ffffff',
                 borderWidth: 2
             }]
         },
@@ -1601,8 +1799,8 @@ function initCharts() {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#9da397',
-                        font: { family: 'Outfit', size: 12 }
+                        color: '#475569',
+                        font: { family: 'Geist', size: 12 }
                     }
                 }
             }
@@ -1627,8 +1825,8 @@ function initCharts() {
             datasets: [{
                 label: 'CO₂e Emissions (tons)',
                 data: trendData,
-                borderColor: '#c2d8b4',
-                backgroundColor: 'rgba(194, 216, 180, 0.1)',
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.05)',
                 borderWidth: 2,
                 fill: true,
                 tension: 0.4
@@ -1642,12 +1840,12 @@ function initCharts() {
             },
             scales: {
                 x: {
-                    grid: { color: '#2c3327' },
-                    ticks: { color: '#9da397', font: { family: 'Outfit' } }
+                    grid: { color: 'rgba(15, 23, 42, 0.05)' },
+                    ticks: { color: '#475569', font: { family: 'Geist' } }
                 },
                 y: {
-                    grid: { color: '#2c3327' },
-                    ticks: { color: '#9da397', font: { family: 'Outfit' } }
+                    grid: { color: 'rgba(15, 23, 42, 0.05)' },
+                    ticks: { color: '#475569', font: { family: 'Geist' } }
                 }
             }
         }
@@ -1741,37 +1939,67 @@ function updateSimEcoIsland(score) {
     const t2 = document.getElementById('sim-tree2-leaves');
     const t3 = document.getElementById('sim-tree3-leaves');
 
+    // Simulator Dwellers selectors
+    const seedlings = document.getElementById('sim-dweller-seedlings');
+    const bunnies = document.getElementById('sim-dweller-bunnies');
+    const foxes = document.getElementById('sim-dweller-foxes');
+    const flowerBuds = document.querySelectorAll('#sim-eco-dwellers .flower-bud');
+    const bunnyParts = document.querySelectorAll('#sim-eco-dwellers .bunny-body, #sim-eco-dwellers .bunny-head, #sim-eco-dwellers .bunny-ear');
+    const foxParts = document.querySelectorAll('#sim-eco-dwellers .fox-fur, #sim-eco-dwellers .fox-ear');
+
     if (!sky || !smog || !sun || !birds || !grass || !t1 || !t2 || !t3) return;
 
     let targetSkyColor = '#a4c6df';
     let targetSmogOpacity = 0;
     let targetSunColor = '#fde047';
     let targetBirdsOpacity = 1;
-    let targetGrassColor = '#4ade80';
-    let t1Radius = 20, t1Color = '#15803d';
-    let t2Radius = 28, t2Color = '#166534';
-    let t3Radius = 16, t3Color = '#15803d';
+    let targetGrassColor = '#00f5a0';
+    let t1Radius = 20, t1Color = '#10b981';
+    let t2Radius = 28, t2Color = '#059669';
+    let t3Radius = 16, t3Color = '#10b981';
+
+    // Dwellers targets
+    let targetDwellersOpacity = 1;
+    let targetDwellersScale = 1;
+    let targetBudColor = '#facc15';
+    let targetBunnyColor = '#ffffff';
+    let targetFoxColor = '#f97316';
+    let animateDwellers = false;
 
     if (score < 4.0) {
-        // healthy (defaults)
+        // healthy
+        targetDwellersOpacity = 1;
+        targetDwellersScale = 1;
+        animateDwellers = true;
     } else if (score <= 10.0) {
         targetSkyColor = '#94a3b8';
         targetSmogOpacity = 0.35;
         targetSunColor = '#e2e8f0';
         targetBirdsOpacity = 0;
-        targetGrassColor = '#a3e635';
-        t1Radius = 12; t1Color = '#854d0e';
-        t2Radius = 20; t2Color = '#166534';
-        t3Radius = 8; t3Color = '#854d0e';
+        targetGrassColor = '#f59e0b';
+        t1Radius = 12; t1Color = '#d97706';
+        t2Radius = 20; t2Color = '#d97706';
+        t3Radius = 8; t3Color = '#b45309';
+
+        // Dwellers moderate
+        targetDwellersOpacity = 0.45;
+        targetDwellersScale = 0.85;
+        targetBudColor = '#78716c';
+        targetBunnyColor = '#d6d3d1';
+        targetFoxColor = '#b45309';
     } else {
         targetSkyColor = '#334155';
         targetSmogOpacity = 0.75;
         targetSunColor = '#475569';
         targetBirdsOpacity = 0;
-        targetGrassColor = '#78350f';
-        t1Radius = 2; t1Color = '#451a03';
-        t2Radius = 4; t2Color = '#451a03';
-        t3Radius = 2; t3Color = '#451a03';
+        targetGrassColor = '#7f1d1d';
+        t1Radius = 2; t1Color = '#991b1b';
+        t2Radius = 4; t2Color = '#991b1b';
+        t3Radius = 2; t3Color = '#991b1b';
+
+        // Dwellers severe
+        targetDwellersOpacity = 0;
+        targetDwellersScale = 0;
     }
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof gsap === 'undefined') {
@@ -1783,6 +2011,15 @@ function updateSimEcoIsland(score) {
         t1.setAttribute('r', t1Radius); t1.setAttribute('fill', t1Color);
         t2.setAttribute('r', t2Radius); t2.setAttribute('fill', t2Color);
         t3.setAttribute('r', t3Radius); t3.setAttribute('fill', t3Color);
+
+        if (seedlings && bunnies && foxes) {
+            seedlings.setAttribute('opacity', targetDwellersOpacity);
+            bunnies.setAttribute('opacity', targetDwellersOpacity);
+            foxes.setAttribute('opacity', targetDwellersOpacity);
+            flowerBuds.forEach(el => el.setAttribute('fill', targetBudColor));
+            bunnyParts.forEach(el => el.setAttribute('fill', targetBunnyColor));
+            foxParts.forEach(el => el.setAttribute('fill', targetFoxColor));
+        }
     } else {
         gsap.to(sky, { fill: targetSkyColor, duration: 0.8, ease: "power2.out" });
         gsap.to(smog, { opacity: targetSmogOpacity, duration: 0.8, ease: "power2.out" });
@@ -1792,6 +2029,58 @@ function updateSimEcoIsland(score) {
         gsap.to(t1, { r: t1Radius, fill: t1Color, duration: 0.8, ease: "back.out(1.5)" });
         gsap.to(t2, { r: t2Radius, fill: t2Color, duration: 0.8, ease: "back.out(1.5)" });
         gsap.to(t3, { r: t3Radius, fill: t3Color, duration: 0.8, ease: "back.out(1.5)" });
+
+        if (seedlings && bunnies && foxes) {
+            gsap.to([seedlings, bunnies, foxes], { opacity: targetDwellersOpacity, duration: 0.8, ease: "power2.out" });
+            gsap.to([seedlings, bunnies, foxes], { scale: targetDwellersScale, transformOrigin: "bottom center", duration: 0.8, ease: "back.out(1.5)" });
+            gsap.to(flowerBuds, { fill: targetBudColor, duration: 0.8 });
+            gsap.to(bunnyParts, { fill: targetBunnyColor, duration: 0.8 });
+            gsap.to(foxParts, { fill: targetFoxColor, duration: 0.8 });
+
+            if (animateDwellers) {
+                // Hop bunnies
+                gsap.killTweensOf('#sim-eco-dwellers .bunny-creature');
+                gsap.to('#sim-eco-dwellers .bunny-creature', {
+                    y: -4,
+                    duration: 0.6,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: "power1.inOut",
+                    stagger: 0.2
+                });
+                // Sway seedlings
+                gsap.killTweensOf('#sim-eco-dwellers #sim-dweller-seedlings > g');
+                gsap.to('#sim-eco-dwellers #sim-dweller-seedlings > g', {
+                    rotation: 5,
+                    transformOrigin: "bottom center",
+                    duration: 1.5,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: "sine.inOut",
+                    stagger: 0.3
+                });
+                // Breathe foxes
+                gsap.killTweensOf('#sim-eco-dwellers .fox-creature');
+                gsap.to('#sim-eco-dwellers .fox-creature', {
+                    scaleX: 1.05,
+                    duration: 0.8,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: "sine.inOut"
+                });
+            } else {
+                gsap.killTweensOf('#sim-eco-dwellers .bunny-creature');
+                gsap.killTweensOf('#sim-eco-dwellers #sim-dweller-seedlings > g');
+                gsap.killTweensOf('#sim-eco-dwellers .fox-creature');
+                gsap.to(['#sim-eco-dwellers .bunny-creature', '#sim-eco-dwellers #sim-dweller-seedlings > g', '#sim-eco-dwellers .fox-creature'], {
+                    y: 0,
+                    rotation: 0,
+                    scaleX: 1,
+                    scaleY: 1,
+                    duration: 0.5
+                });
+            }
+        }
     }
 }
 
