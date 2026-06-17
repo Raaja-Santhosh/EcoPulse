@@ -120,7 +120,8 @@ export const AssistantTab: React.FC = () => {
 
     if (savedToken) {
       try {
-        const backendBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+        const rawBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+        const backendBase = rawBase.replace(/\/+$/, '');
         const response = await fetch(`${backendBase}/api/chat`, {
           method: 'POST',
           headers: {
