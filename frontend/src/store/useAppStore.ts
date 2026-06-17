@@ -307,9 +307,10 @@ export const useAppStore = create<AppState>()(
           footprint: score
         };
 
+        const backendBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
         const tryEndpoints = [
-          'http://localhost:8000/chat',
-          'http://localhost:8000/api/chat'
+          `${backendBase}/chat`,
+          `${backendBase}/api/chat`
         ];
 
         let lastError = null;
