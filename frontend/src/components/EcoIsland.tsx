@@ -5,9 +5,10 @@ import gsap from 'gsap';
 export const EcoIsland: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   
-  const { categoryScores, logs } = useEcoPulseStore();
+  const { logs, score: baseScore } = useEcoPulseStore();
   
-  const score = parseFloat((categoryScores.energy + categoryScores.transport + categoryScores.diet + categoryScores.waste).toFixed(1));
+  const logImpactTons = logs.reduce((sum, log) => sum + (log.carbon / 1000), 0);
+  const score = Math.max(0.1, Math.round((baseScore + logImpactTons) * 100) / 100);
   const hasLogs = logs.length > 0;
 
   useEffect(() => {
