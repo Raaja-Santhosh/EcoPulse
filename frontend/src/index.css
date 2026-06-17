@@ -589,7 +589,7 @@ input:focus-visible {
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: -2px;
-  color: var(--color-accent-sand);
+  color: var(--color-primary);
   text-transform: none;
 }
 
