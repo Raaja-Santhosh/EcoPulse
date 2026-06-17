@@ -230,7 +230,14 @@ def handle_chat_logic(chat_req: ChatRequest, api_key: str):
         )
     
     score_context = ""
-    if baseline and "calculations" in baseline:
+    if chat_req.baseline_total is not None:
+        breakdown = chat_req.baseline_breakdown or {}
+        score_context = (
+            f"The user has a baseline annual carbon footprint of {chat_req.baseline_total} tons of CO2e. "
+            f"Breakdown: Transport: {breakdown.get('transport', 0.0)} tons, Diet: {breakdown.get('diet', 0.0)} tons, "
+            f"Energy: {breakdown.get('energy', 0.0)} tons, Waste: {breakdown.get('waste', 0.0)} tons."
+        )
+    elif baseline and "calculations" in baseline:
         score_context = (
             f"The user has a baseline annual carbon footprint of {baseline['calculations']['total']} tons of CO2e. "
             f"Breakdown: Transport: {baseline['calculations']['transport']} tons, Diet: {baseline['calculations']['diet']} tons, "

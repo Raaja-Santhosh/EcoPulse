@@ -19,7 +19,7 @@ const SUGGESTIONS = [
 ];
 
 export const AssistantTab: React.FC = () => {
-  const { addLog } = useEcoPulseStore();
+  const { addLog, score, categoryScores, onboarded } = useEcoPulseStore();
   const [messages, setMessages] = useState<ChatMessage[]>( [
     {
       id: 'welcome',
@@ -128,7 +128,11 @@ export const AssistantTab: React.FC = () => {
             'Content-Type': 'application/json',
             'X-Gemini-API-Key': savedToken,
           },
-          body: JSON.stringify({ message: textToSend }),
+          body: JSON.stringify({ 
+            message: textToSend,
+            baseline_total: onboarded ? score : null,
+            baseline_breakdown: onboarded ? categoryScores : null
+          }),
         });
 
         if (!response.ok) {

@@ -43,6 +43,8 @@ class LogCreate(BaseModel):
 class ChatRequest(BaseModel):
     message: str = Field(..., description="The message sent by the user to the chatbot", max_length=1000)
     history: Optional[List[Dict[str, Any]]] = Field(default=None, description="Chat conversation history")
+    baseline_total: Optional[float] = Field(default=None, description="Total baseline carbon footprint in tons CO2e")
+    baseline_breakdown: Optional[Dict[str, float]] = Field(default=None, description="Breakdown of baseline footprint by category")
 
     @field_validator("message")
     @classmethod
