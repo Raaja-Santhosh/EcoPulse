@@ -265,11 +265,50 @@ Rules for response:
 User message: "{chat_req.message}"
 """
 
-    models_to_try = [
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-8b",
-        "gemini-1.5-pro"
-    ]
+    # Configure genai with the API key first to list models
+    genai.configure(api_key=api_key)
+
+    models_to_try = []
+    try:
+        api_models = genai.list_models()
+        # Filter models that support generateContent and strip any "models/" prefix
+        available_names = [
+            m.name.replace("models/", "")
+            for m in api_models
+            if "generateContent" in m.supported_generation_methods
+        ]
+        
+        # Priority groups:
+        # Group 1: 'lite' (lowest traffic, highest free tier rate limits, e.g. gemini-2.0-flash-lite)
+        # Group 2: '8b' (lightweight, low traffic, e.g. gemini-1.5-flash-8b)
+        # Group 3: 'preview' (newer experimental previews, less traffic)
+        # Group 4: 'flash' (standard flash, medium traffic, e.g. gemini-1.5-flash)
+        # Group 5: 'pro' (heavy traffic, lowest rate limits, last resort)
+        priority_patterns = ["lite", "8b", "preview", "flash", "pro"]
+        
+        def get_model_priority(model_name: str) -> int:
+            name_lower = model_name.lower()
+            for idx, pattern in enumerate(priority_patterns):
+                if pattern in name_lower:
+                    return idx
+            return len(priority_patterns)  # Unknown models get lowest priority
+            
+        models_to_try = sorted(available_names, key=get_model_priority)
+        print(f"Dynamically discovered models: {available_names}")
+        print(f"Prioritized models to try: {models_to_try}")
+    except Exception as e:
+        print(f"Failed to dynamically discover models: {str(e)}")
+        # Safe prioritized fallback if listing fails
+        models_to_try = [
+            "gemini-2.0-flash-lite",
+            "gemini-1.5-flash-8b",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+            "gemini-1.5-pro"
+        ]
+
+    if not models_to_try:
+        models_to_try = ["gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro"]
 
     response = None
     last_err = None
