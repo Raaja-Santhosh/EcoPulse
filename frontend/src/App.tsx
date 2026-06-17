@@ -11,7 +11,7 @@ import LandingPage from './components/LandingPage';
 import { Leaf, Award } from 'lucide-react';
 
 const App: React.FC = () => {
-  const { onboarded, xp, level, levelName } = useEcoPulseStore();
+  const { onboarded, xp, level, levelName, resetAll } = useEcoPulseStore();
   const [activeTab, setActiveTab] = useState<'home' | 'dashboard' | 'actions' | 'nudges' | 'tracker' | 'assistant'>('home');
   const [enteredApp, setEnteredApp] = useState<boolean>(false);
 
@@ -173,6 +173,19 @@ const App: React.FC = () => {
               style={{ width: `${getXpProgressPercent()}%` }}
             />
           </div>
+          {onboarded && (
+            <button
+              onClick={() => {
+                if (window.confirm("Are you sure you want to reset your baseline score and retake the quiz? All your daily logs and XP will be cleared.")) {
+                  resetAll();
+                  setActiveTab('home');
+                }
+              }}
+              className="text-[10px] font-bold uppercase underline tracking-[0.5px] text-[#c87a53] hover:text-[#2b3a34] transition-all mt-0.5 cursor-pointer"
+            >
+              Reset & Retake Quiz
+            </button>
+          )}
         </div>
       </header>
 

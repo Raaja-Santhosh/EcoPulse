@@ -33,10 +33,10 @@ class GeminiResponseSchema(BaseModel):
     auto_log: Optional[AutoLogDetails] = None
 
 # Helper to configure and retrieve the Gemini GenerativeModel
-def get_gemini_model(api_key: str) -> genai.GenerativeModel:
+def get_gemini_model(api_key: str, model_name: str = "gemini-3.1-flash-lite") -> genai.GenerativeModel:
     genai.configure(api_key=api_key)
     return genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
+        model_name=model_name,
         generation_config={
             "response_mime_type": "application/json",
             "response_schema": GeminiResponseSchema
@@ -182,14 +182,6 @@ def delete_log_query(id: str = Query(..., description="The ID of the log entry t
 
 # Chatbot handler logic
 def handle_chat_logic(chat_req: ChatRequest, api_key: str):
-    try:
-        model = get_gemini_model(api_key)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to initialize Gemini model: {str(e)}"
-        )
-
     # Build system/prompt context
     current_state = database.get_state()
     baseline = current_state.get("baseline")
@@ -210,18 +202,24 @@ You are EcoPulse Assistant, a personal carbon intelligence coach.
 Your job is to reply to the user's message and extract any carbon-impact activities they have performed to automatically log them.
 {score_context}
 
+Strict Scope, Length & Formatting Rules:
+1. You must ONLY answer questions, provide tips, or discuss topics related to carbon footprints, environmental sustainability, ecology, climate change, and green living.
+2. If the user's message is not related to carbon footprint, sustainability, ecology, or green living, you must politely decline to answer in the "reply" field, explaining that your expertise is strictly limited to carbon footprint tracking and ecological sustainability. Do not answer their unrelated question.
+3. Keep the "reply" extremely short, brief, and directly on point (maximum 2 to 3 sentences, under 50 words).
+4. Do NOT use any Markdown symbols, formatting characters, asterisks (**), hashtags (#), or dashes/bullet points in the "reply" field. Output clean, plain text only.
+
 Rules for response:
 1. Return a JSON object matching this schema:
    {{
-     "reply": "your response in Markdown format",
+     "reply": "your response (plain text only, no markdown symbols)",
      "auto_log": null or {{
        "category": "transport" | "diet" | "energy" | "waste" | "other",
        "description": "Short description of the activity done",
        "carbon_saved": float
      }}
    }}
-2. Tailor your reply to the user's current carbon footprint score if provided. Keep it concise, professional, encouraging, and informative.
-3. If the user describes doing a specific activity, set "auto_log" to the extracted details. Otherwise, set "auto_log" to null.
+2. Tailor your reply to the user's current carbon footprint score if provided.
+3. If the user describes doing a specific activity (within the allowed eco scope), set "auto_log" to the extracted details. Otherwise, set "auto_log" to null.
 4. Calculate "carbon_saved" in kg CO2 using these exact formulas:
    - Transport:
      * Petrol car commute: carbon_saved = -(miles * 0.411)
@@ -246,10 +244,34 @@ Rules for response:
 User message: "{chat_req.message}"
 """
 
+    models_to_try = [
+        "gemini-3.1-flash-lite",
+        "gemini-2.5-flash-lite",
+        "gemini-2.0-flash-lite-preview",
+        "gemini-1.5-flash-8b",
+        "gemini-1.5-flash",
+        "gemini-2.0-flash",
+        "gemini-1.5-pro"
+    ]
+
+    response = None
+    last_err = None
+    for model_name in models_to_try:
+        try:
+            model = get_gemini_model(api_key, model_name=model_name)
+            response = model.generate_content(prompt_context)
+            break
+        except Exception as e:
+            last_err = e
+            print(f"Backend failed using model {model_name}: {str(e)}")
+            continue
+
+    if not response:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Gemini generation error: {str(last_err)}"
+        )
     try:
-        # Generate content with Gemini
-        response = model.generate_content(prompt_context)
-        
         # Parse the structured JSON response
         response_text = response.text.strip()
         result_json = json.loads(response_text)

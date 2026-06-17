@@ -1,5 +1,10 @@
-/* Tactile Physical Journal Design System */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tactile Physical Journal Design System */
 
 :root {
   --bg-main: #fcfbf7;             /* warm paper background */
@@ -549,6 +554,13 @@ input:focus-visible {
   border-bottom: 2px solid var(--border-color-thick);
 }
 
+#hero-section {
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
 /* WebGL Fog container */
 #vanta-bg-container {
   position: absolute;
@@ -659,9 +671,9 @@ input:focus-visible {
 .showcase-image-wrapper {
   width: 100%;
   max-width: 480px;
-  background-color: var(--bg-card);
+  background-color: transparent;
   border: 2px solid var(--border-color-thick);
-  padding: 0.75rem;
+  padding: 0;
   border-radius: 0px;
   box-shadow: 4px 4px 0px var(--border-color-thick);
   overflow: hidden;
@@ -673,7 +685,7 @@ input:focus-visible {
   height: auto;
   border-radius: 0px;
   display: block;
-  filter: saturate(0.85) contrast(1.05);
+  filter: none;
   transition: transform 1.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 

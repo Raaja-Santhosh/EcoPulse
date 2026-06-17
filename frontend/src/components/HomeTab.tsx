@@ -121,28 +121,20 @@ export const HomeTab: React.FC<HomeTabProps> = ({ onNavigateToDashboard }) => {
           </p>
         </div>
         <div className="flex justify-center">
-          <div className="p-4 bg-[#f5f3eb] border-2 border-[#2b3a34] shadow-[4px_4px_0px_#2b3a34]">
-            {/* Visual element representing ecological footprint */}
-            <div className="w-72 h-72 rounded-full border-4 border-dashed border-[#4a6b5d] flex flex-col justify-center items-center p-6 text-center bg-white">
-              <span className="text-4xl mb-3">🌍</span>
-              <span className="font-serif font-bold text-lg text-[#2b3a34]">Collective Shadow</span>
-              <p className="text-xs text-[#4a6b5d] mt-2">Personal decisions account for nearly 60% of global greenhouse emissions.</p>
-            </div>
+          <div className="p-2 bg-[#f5f3eb] border-2 border-[#2b3a34] shadow-[4px_4px_0px_#2b3a34] max-w-sm w-full">
+            <img 
+              src="/assets/carbon_footprint_concept.png?v=4.0" 
+              alt="Carbon Footprint Concept" 
+              className="w-full h-auto object-cover border border-[#2b3a34]"
+            />
           </div>
         </div>
       </div>
 
       {/* Accordion causes section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
-        <div className="flex justify-center md:order-2">
-          <div className="p-4 bg-[#f5f3eb] border-2 border-[#2b3a34] shadow-[4px_4px_0px_#2b3a34] text-center w-full max-w-md">
-            <span className="text-4xl" role="img" aria-label="Ecosystem icon">🌱</span>
-            <h4 className="font-serif font-bold text-lg text-[#2b3a34] mt-2">Active Adaptation</h4>
-            <p className="text-xs text-[#4a6b5d] mt-2">The EcoPulse dashboard translates these percentages into action cards. Complete them to lower the score.</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-start gap-4 text-left w-full md:order-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        {/* Accordions (First on mobile, right on desktop) */}
+        <div className="flex flex-col items-start gap-4 text-left w-full md:order-2">
           <span className="text-xs text-[#c87a53] uppercase tracking-[2px] font-bold">
             Main Contributors
           </span>
@@ -197,6 +189,17 @@ export const HomeTab: React.FC<HomeTabProps> = ({ onNavigateToDashboard }) => {
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* Image (Second on mobile, left on desktop) */}
+        <div className="flex justify-center md:order-1">
+          <div className="p-2 bg-[#f5f3eb] border-2 border-[#2b3a34] shadow-[4px_4px_0px_#2b3a34] max-w-sm w-full">
+            <img 
+              src="/assets/ecological_balance_concept.png?v=4.0" 
+              alt="Ecological Balance Concept" 
+              className="w-full h-auto object-cover border border-[#2b3a34]"
+            />
           </div>
         </div>
       </div>

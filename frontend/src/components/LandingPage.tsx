@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 // Declare global window properties for CDNs
 declare global {
@@ -17,14 +17,14 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const vantaRef = useRef<HTMLDivElement>(null);
-  const [vantaEffect, setVantaEffect] = useState<any>(null);
   const lenisRef = useRef<any>(null);
 
   // Initialize Vanta Fog
   useEffect(() => {
-    if (!vantaEffect && vantaRef.current && window.VANTA && window.THREE) {
+    let effect: any = null;
+    if (vantaRef.current && window.VANTA && window.THREE) {
       try {
-        const effect = window.VANTA.FOG({
+        effect = window.VANTA.FOG({
           el: vantaRef.current,
           mouseControls: true,
           touchControls: true,
@@ -39,17 +39,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           speed: 1.20,
           zoom: 1.10
         });
-        setVantaEffect(effect);
+        
+        // Force Vanta to recalculate size once layout settles
+        setTimeout(() => {
+          if (effect && typeof effect.resize === 'function') {
+            effect.resize();
+          }
+        }, 500);
       } catch (err) {
         console.error('Failed to initialize Vanta Fog:', err);
       }
     }
     return () => {
-      if (vantaEffect) {
-        vantaEffect.destroy();
+      if (effect) {
+        effect.destroy();
       }
     };
-  }, [vantaEffect]);
+  }, []);
 
   // Initialize Lenis Smooth Scroll
   useEffect(() => {
@@ -118,8 +124,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             start: "top 70%",
             toggleActions: "play none none reverse"
           },
-          scale: 0.85,
-          opacity: 0.2,
+          scale: 0.92,
           duration: 1.4,
           ease: "power2.out"
         });
@@ -131,8 +136,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             start: "top 70%",
             toggleActions: "play none none reverse"
           },
-          scale: 0.85,
-          opacity: 0.2,
+          scale: 0.92,
           duration: 1.4,
           ease: "power2.out"
         });

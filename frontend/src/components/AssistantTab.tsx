@@ -56,37 +56,18 @@ export const AssistantTab: React.FC = () => {
   const getSimulatedResponse = (query: string): string => {
     const q = query.toLowerCase();
     if (q.includes('transport') || q.includes('car') || q.includes('commute') || q.includes('transit') || q.includes('fly')) {
-      return `🚗 **Transportation Insights:** Commuting is typically the largest slice of an individual's carbon footprint. 
-      Replacing petrol driving with a bike or public transit saves roughly 0.41 kg of CO2 *per mile*. If you commute 15 miles daily, switching to transit reduces your annual footprint by almost **1.5 tons of CO2**!`;
+      return "Replacing a petrol car commute with walking, biking, or public transit saves about 0.4 kg of CO2 per mile. Over a year, this can easily reduce your footprint by more than a ton.";
     }
     if (q.includes('diet') || q.includes('recipe') || q.includes('food') || q.includes('eat') || q.includes('meal') || q.includes('vegan') || q.includes('vegetarian')) {
-      return `🥗 **Low-Carbon Diet Tips:** Beef produces about **27 kg of CO2e** per kilogram of meat, whereas plant-based foods like lentils, beans, and tofu produce less than **1.5 kg**. 
-      Here is a quick eco-friendly recipe:
-      
-      **Lentil & Coconut Dahl (Serves 4):**
-      * Heat 1 tbsp oil, sauté 1 chopped onion, 2 garlic cloves, and 1 tbsp ginger.
-      * Add 1 tbsp curry powder, 1 cup red lentils, 1 can coconut milk, and 2 cups vegetable broth.
-      * Simmer for 20 mins until lentils are soft. Stir in baby spinach.
-      * Carbon impact: **~0.3 kg CO2e per serving** (vs. ~6.5 kg for a beef burger!).`;
+      return "Eating beef produces 27 kg of CO2 per kilogram, while plant-based foods like lentils produce less than 2 kg. Swapping beef for tofu or lentils reduces your meal footprint by 90 percent.";
     }
     if (q.includes('energy') || q.includes('bill') || q.includes('electricity') || q.includes('heat') || q.includes('solar') || q.includes('power')) {
-      return `💡 **Home Energy Efficiency:** Heating and cooling accounts for nearly half of household utility energy.
-      * **Thermostat Control:** Dropping your heating thermostat by just 1°C saves around **10%** on your energy usage (equal to ~450 kg CO2/year).
-      * **LED Transition:** Replacing traditional bulbs with LEDs reduces light energy consumption by **75%**.
-      * **Standby Draw:** Unplugging chargers and TV standby units saves around $50-$100 and ~150 kg CO2 annually!`;
+      return "Heating and cooling account for half of household energy use. Adjusting your thermostat by 1 degree saves about 10 percent on energy bills and prevents 450 kg of CO2 emissions annually.";
     }
     if (q.includes('badge') || q.includes('level') || q.includes('xp') || q.includes('rank')) {
-      return `🏆 **EcoPulse Gamification & Rewards:**
-      * Log logs daily (+10 XP) and commit to daily habits (+20 to +80 XP).
-      * **Levels:**
-        * Level 1: Seed (0 - 149 XP)
-        * Level 2: Eco Seedling (150 - 399 XP)
-        * Level 3: Active Sprout (400 - 799 XP)
-        * Level 4: Forest Protector (800 - 1499 XP)
-        * Level 5: Eco Guardian (1500+ XP)
-      Keep making sustainable choices to level up!`;
+      return "You earn 10 XP for daily logging and up to 80 XP for commitments. Leveling up shows your growth from a Seedling to a Forest Guardian as you build sustainable habits.";
     }
-    return `🌱 I'm your eco-assistant! Ask me details about diet recipes, utility calculations, transport footprints, or our badges. Try asking: *'Suggest some diet recipes'* or *'How can I save transport emissions?'*`;
+    return "I can help you reduce your carbon footprint. Ask me about diet recipes, utility calculations, transport offsets, or how our level system works.";
   };
 
   const handleSendMessage = async (textToSend: string) => {
@@ -132,7 +113,15 @@ export const AssistantTab: React.FC = () => {
     }
 
     if (savedToken) {
-      const promptContext = `You are EcoPulse Assistant, a personal carbon intelligence coach. The user currently emits ${score} tons of CO2e per year. Answer this ecological question concisely using Markdown: "${textToSend}"`;
+      const promptContext = `You are EcoPulse Assistant, a personal carbon intelligence coach. The user currently emits ${score} tons of CO2e per year.
+
+Strict Scope, Length & Formatting Rules:
+1. You must ONLY answer questions, provide tips, or discuss topics related to carbon footprints, environmental sustainability, ecology, climate change, and green living.
+2. If the user's message is not related to carbon footprint, sustainability, ecology, or green living, you must politely decline to answer, explaining that your expertise is strictly limited to carbon footprint tracking and ecological sustainability. Do not answer their unrelated question.
+3. Keep your response extremely short, brief, and directly on point (maximum 2 to 3 sentences, under 50 words).
+4. Do NOT use any Markdown symbols, formatting characters, asterisks (**), hashtags (#), or dashes/bullet points. Output clean, plain text only.
+
+User question: "${textToSend}"`;
       const payload = {
         contents: [{
           parts: [{ text: promptContext }]
@@ -147,22 +136,103 @@ export const AssistantTab: React.FC = () => {
         });
       };
 
+      const getModelsToTry = async (token: string) => {
+        const defaultModels = [
+          { version: 'v1beta', name: 'gemini-3.1-flash-lite' },
+          { version: 'v1', name: 'gemini-3.1-flash-lite' },
+          { version: 'v1beta', name: 'gemini-2.5-flash-lite' },
+          { version: 'v1', name: 'gemini-2.5-flash-lite' },
+          { version: 'v1beta', name: 'gemini-2.0-flash-lite-preview' },
+          { version: 'v1beta', name: 'gemini-1.5-flash-8b' },
+          { version: 'v1', name: 'gemini-1.5-flash-8b' },
+          { version: 'v1beta', name: 'gemini-1.5-flash' },
+          { version: 'v1', name: 'gemini-1.5-flash' },
+          { version: 'v1beta', name: 'gemini-2.0-flash' },
+          { version: 'v1', name: 'gemini-2.0-flash' },
+          { version: 'v1beta', name: 'gemini-1.5-pro' },
+          { version: 'v1', name: 'gemini-1.5-pro' }
+        ];
+
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${token}`);
+          if (res.ok) {
+            const data = await res.json();
+            const apiModels = data.models
+              ?.filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+              ?.map((m: any) => m.name.replace('models/', ''));
+            
+            if (apiModels && apiModels.length > 0) {
+              const sorted = apiModels.sort((a: string, b: string) => {
+                const aLower = a.toLowerCase();
+                const bLower = b.toLowerCase();
+                const score = (name: string) => {
+                  if (name.includes('3.1-flash-lite') || name.includes('3-lite') || name.includes('3.5-lite') || name.includes('3.1-lite')) return 0;
+                  if (name.includes('lite')) return 1;
+                  if (name.includes('preview')) return 2;
+                  if (name.includes('8b')) return 3;
+                  if (name.includes('flash')) return 4;
+                  if (name.includes('pro')) return 6;
+                  return 5;
+                };
+                return score(aLower) - score(bLower);
+              });
+              
+              const resolved = [];
+              for (const name of sorted) {
+                resolved.push({ version: 'v1beta', name });
+                resolved.push({ version: 'v1', name });
+              }
+              return resolved;
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to dynamically query models, using defaults:', e);
+        }
+        return defaultModels;
+      };
+
+      let response: any = null;
+      const errors: string[] = [];
+
       try {
-        let response = await makeRequest('v1beta', 'gemini-1.5-flash');
-        if (response.status === 404) {
-          response = await makeRequest('v1', 'gemini-1.5-flash');
-        }
-        if (response.status === 404) {
-          response = await makeRequest('v1beta', 'gemini-1.5-pro');
-        }
-        if (response.status === 404) {
-          response = await makeRequest('v1', 'gemini-pro');
+        const modelsToTry = await getModelsToTry(savedToken);
+        for (const model of modelsToTry) {
+          try {
+            response = await makeRequest(model.version, model.name);
+            if (response.ok) {
+              break;
+            } else {
+              const errData = await response.json().catch(() => ({}));
+              const errMsg = errData.error?.message || `HTTP ${response.status}`;
+              const fullErr = `[${model.name} (${model.version})]: ${errMsg}`;
+              errors.push(fullErr);
+              console.warn(fullErr);
+              
+              // If it's a key validation abort error, throw immediately
+              if (response.status === 400 && errMsg.toLowerCase().includes('key')) {
+                throw new Error(errMsg);
+              }
+            }
+          } catch (e: any) {
+            errors.push(`[${model.name} (${model.version})]: ${e.message || 'Fetch failed'}`);
+            if (e.message && e.message.toLowerCase().includes('key')) {
+              throw e;
+            }
+          }
         }
 
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ( {}));
-          const errMsg = errData.error?.message || `HTTP ${response.status}`;
-          throw new Error(errMsg);
+        if (!response || !response.ok) {
+          // Find any error containing "quota", "limit", or "billing"
+          const priorityError = errors.find(err => 
+            err.toLowerCase().includes('quota') || 
+            err.toLowerCase().includes('limit') || 
+            err.toLowerCase().includes('billing')
+          );
+          if (priorityError) {
+            throw new Error(priorityError);
+          }
+          // Default to the first model's error (gemini-1.5-flash-8b) instead of the last model (gemini-1.5-pro)
+          throw new Error(errors[0] || 'Failed to connect to any Gemini API endpoints.');
         }
 
         const data = await response.json();
