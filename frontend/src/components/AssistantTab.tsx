@@ -30,6 +30,7 @@ export const AssistantTab: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('ecopulse_gemini_key') || '');
   const [isApiKeySaved, setIsApiKeySaved] = useState(() => !!localStorage.getItem('ecopulse_gemini_key'));
+  const [isBackendLive, setIsBackendLive] = useState(() => !!localStorage.getItem('ecopulse_gemini_key'));
   const [isLoading, setIsLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -43,6 +44,7 @@ export const AssistantTab: React.FC = () => {
     if (trimmed) {
       localStorage.setItem('ecopulse_gemini_key', trimmed);
       setIsApiKeySaved(true);
+      setIsBackendLive(true);
       toast.success('Gemini API Key saved! Connecting to live intelligence.', {
         style: { border: '2px solid #2b3a34', padding: '16px', color: '#2b3a34', fontWeight: 'bold' }
       });
@@ -53,6 +55,7 @@ export const AssistantTab: React.FC = () => {
     localStorage.removeItem('ecopulse_gemini_key');
     setApiKey('');
     setIsApiKeySaved(false);
+    setIsBackendLive(false);
     toast('Gemini key cleared. Offline simulation active.', {
       icon: '🔌',
       style: { border: '2px solid #2b3a34', padding: '16px', color: '#2b3a34', fontWeight: 'bold' }
@@ -118,55 +121,59 @@ export const AssistantTab: React.FC = () => {
       });
     }
 
-    if (savedToken) {
-      try {
-        const rawBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-        const backendBase = rawBase.replace(/\/+$/, '');
-        const response = await fetch(`${backendBase}/api/chat`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Gemini-API-Key': savedToken,
-          },
-          body: JSON.stringify({ 
-            message: textToSend,
-            baseline_total: onboarded ? score : null,
-            baseline_breakdown: onboarded ? categoryScores : null
-          }),
-        });
+    try {
+      const rawBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const backendBase = rawBase.replace(/\/+$/, '');
+      
+      const response = await fetch(`${backendBase}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(savedToken ? { 'X-Gemini-API-Key': savedToken } : {}),
+        },
+        body: JSON.stringify({ 
+          message: textToSend,
+          baseline_total: onboarded ? score : null,
+          baseline_breakdown: onboarded ? categoryScores : null
+        }),
+      });
 
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.detail || `HTTP ${response.status}`);
-        }
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || `HTTP ${response.status}`);
+      }
 
-        const data = await response.json();
-        
-        if (data.reply) {
+      const data = await response.json();
+      
+      if (data.reply) {
+        setIsBackendLive(true);
+        setMessages((prev) => [
+          ...prev,
+          { id: Math.random().toString(), sender: 'assistant', text: data.reply }
+        ]);
+
+        if (data.auto_log) {
+          addLog(
+            data.auto_log.category,
+            1, // value placeholder
+            data.auto_log.carbon_saved,
+            true,
+            data.auto_log.description
+          );
           setMessages((prev) => [
             ...prev,
-            { id: Math.random().toString(), sender: 'assistant', text: data.reply }
+            { id: Math.random().toString(), sender: 'system', text: `🌱 Auto-logged (Intelligence): ${data.auto_log.description} (${data.auto_log.carbon_saved > 0 ? '+' : ''}${data.auto_log.carbon_saved} kg CO2e)` }
           ]);
-
-          if (data.auto_log) {
-            addLog(
-              data.auto_log.category,
-              1, // value placeholder
-              data.auto_log.carbon_saved,
-              true,
-              data.auto_log.description
-            );
-            setMessages((prev) => [
-              ...prev,
-              { id: Math.random().toString(), sender: 'system', text: `🌱 Auto-logged (Intelligence): ${data.auto_log.description} (${data.auto_log.carbon_saved > 0 ? '+' : ''}${data.auto_log.carbon_saved} kg CO2e)` }
-            ]);
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-          }
-        } else {
-          throw new Error('Empty response from EcoPulse Backend.');
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         }
-      } catch (err: any) {
-        console.error(err);
+      } else {
+        throw new Error('Empty response from EcoPulse Backend.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      const isMissingKey = err.message && (err.message.includes('API Key is missing') || err.message.includes('HTTP 400'));
+      
+      if (savedToken || !isMissingKey) {
         setMessages((prev) => [
           ...prev,
           {
@@ -181,30 +188,25 @@ export const AssistantTab: React.FC = () => {
             text: getSimulatedResponse(textToSend)
           }
         ]);
-        if (autoLogged) {
-          setMessages((prev) => [
-            ...prev,
-            { id: Math.random().toString(), sender: 'system', text: `🌱 Auto-logged (Simulation): ${autoLogDesc} (-${autoLogCarbon.toFixed(2)} kg CO2e)` }
-          ]);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      setTimeout(() => {
-        let text = getSimulatedResponse(textToSend);
+      } else {
+        // Silent clean fallback to simulated offline response
         setMessages((prev) => [
           ...prev,
-          { id: Math.random().toString(), sender: 'assistant', text: text }
+          {
+            id: Math.random().toString(),
+            sender: 'assistant',
+            text: getSimulatedResponse(textToSend)
+          }
         ]);
-        if (autoLogged) {
-          setMessages((prev) => [
-            ...prev,
-            { id: Math.random().toString(), sender: 'system', text: `🌱 Auto-logged: ${autoLogDesc} (-${autoLogCarbon.toFixed(2)} kg CO2e)` }
-          ]);
-        }
-        setIsLoading(false);
-      }, 700);
+      }
+      if (autoLogged) {
+        setMessages((prev) => [
+          ...prev,
+          { id: Math.random().toString(), sender: 'system', text: `🌱 Auto-logged (Simulation): ${autoLogDesc} (-${autoLogCarbon.toFixed(2)} kg CO2e)` }
+        ]);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -231,7 +233,7 @@ export const AssistantTab: React.FC = () => {
             <div>
               <strong className="text-sm text-[#2b3a34]">EcoPulse Coach</strong>
               <span className="text-[10px] text-[#4a6b5d] block uppercase font-bold tracking-wider">
-                {isApiKeySaved ? 'Mode: Gemini API Active' : 'Mode: Offline Simulation'}
+                {isApiKeySaved || isBackendLive ? 'Mode: Gemini API Active' : 'Mode: Offline Simulation'}
               </span>
             </div>
           </div>
