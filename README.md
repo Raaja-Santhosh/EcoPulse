@@ -4,8 +4,8 @@ EcoPulse is a premium personal carbon intelligence platform designed to help ind
 
 Unlike standard trackers, EcoPulse focuses on **behavioral change and emotional awareness** through custom dynamic elements: the **Eco-Island Living World** visualization and real-time **Decision Sandbox Nudges**.
 
-**Live Demo**: [eco-pulse-rouge.vercel.app](https://eco-pulse-rouge.vercel.app/)  
-**Backend API**: [ecopulse-jmff.onrender.com](https://ecopulse-jmff.onrender.com/)
+**Live Demo**: *(Insert your deployed frontend URL here)*  
+**Backend API**: *(Insert your deployed backend URL here)*
 
 ---
 
@@ -21,16 +21,16 @@ Unlike standard trackers, EcoPulse focuses on **behavioral change and emotional 
 
 | Layer | Technology |
 |:---|:---|
-| **Frontend** | React 18 + TypeScript + Vite 8 |
-| **State Management** | Zustand 5 with localStorage persistence |
+| **Frontend** | React 18 + TypeScript + Vite |
+| **State Management** | Zustand with localStorage persistence |
 | **Charts** | Recharts 3.8 (Pie, Line) |
-| **Animations** | GSAP 3.15, Vanta.js (WebGL fog), Lenis (smooth scroll) |
-| **Styling** | Tailwind CSS 3 + Custom CSS Design System ("Tactile Journal" theme) |
+| **Animations** | GSAP, Vanta.js (WebGL fog), Lenis (smooth scroll) |
+| **Styling** | Tailwind CSS + Custom CSS Design System ("Tactile Journal" theme) |
 | **Icons** | Lucide React |
 | **Backend** | FastAPI (Python 3.12) + Pydantic v2 |
 | **AI Integration** | Google Gemini API (structured JSON output, multi-model fallback) |
-| **Testing** | Jest 30 + React Testing Library (frontend), Pytest (backend) |
-| **Deployment** | Vercel (frontend), Render via Docker (backend) |
+| **Testing** | Jest + React Testing Library (frontend), Pytest (backend) |
+| **Deployment** | Netlify / Vercel (frontend), Render via Docker (backend) |
 | **Fonts** | Cormorant Garamond (serif), Plus Jakarta Sans (sans) |
 
 ---
