@@ -35,19 +35,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pydantic schema for the structured response configuration of Gemini
-class GeminiResponseSchema(BaseModel):
-    reply: str
-    auto_log: Optional[AutoLogDetails] = None
-
 # Helper to configure and retrieve the Gemini GenerativeModel
 def get_gemini_model(api_key: str, model_name: str = "gemini-2.0-flash-lite") -> genai.GenerativeModel:
     genai.configure(api_key=api_key)
+    
+    gemini_schema = {
+        "type": "object",
+        "properties": {
+            "reply": {"type": "string"},
+            "auto_log": {
+                "type": "object",
+                "nullable": True,
+                "properties": {
+                    "category": {"type": "string"},
+                    "description": {"type": "string"},
+                    "carbon_saved": {"type": "number"}
+                }
+            }
+        },
+        "required": ["reply"]
+    }
+    
     return genai.GenerativeModel(
         model_name=model_name,
         generation_config={
             "response_mime_type": "application/json",
-            "response_schema": GeminiResponseSchema
+            "response_schema": gemini_schema
         }
     )
 
