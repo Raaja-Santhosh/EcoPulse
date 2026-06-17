@@ -76,7 +76,7 @@ def test_massive_inputs():
     assert res_data["baseline"]["calculations"]["total"] > 1e19
     assert res_data["xp"] == 50
 
-    # 2. Massive text length for description in log
+    # 2. Massive text length for description in log — should be rejected by max_length=5000
     massive_desc = "X" * 500000
     log_data = {
         "category": "other",
@@ -84,10 +84,20 @@ def test_massive_inputs():
         "carbon_saved": 12.34
     }
     response = client.post("/api/logs", json=log_data)
+    assert response.status_code == 422  # Rejected by max_length validation
+
+    # 3. Verify that a description within the limit succeeds
+    valid_desc = "Y" * 4999
+    log_data_ok = {
+        "category": "other",
+        "description": valid_desc,
+        "carbon_saved": 12.34
+    }
+    response = client.post("/api/logs", json=log_data_ok)
     assert response.status_code == 200
     state = response.json()
     assert len(state["logs"]) == 1
-    assert len(state["logs"][0]["description"]) == 500000
+    assert len(state["logs"][0]["description"]) == 4999
 
 def test_nan_parameters():
     # 1. NaN in baseline
@@ -167,3 +177,68 @@ def test_gemini_connection_failure():
         # Verify it raises a 500 error due to Gemini exception handling
         assert response.status_code == 500
         assert "Gemini generation error" in response.json()["detail"]
+
+def test_chat_alias_endpoint():
+    """Verify the /chat alias endpoint correctly delegates to /api/chat."""
+    chat_payload = {"message": "What is my carbon footprint?"}
+    # Without API key, both endpoints should return 400
+    response = client.post("/chat", json=chat_payload)
+    assert response.status_code == 400
+    assert "Google Gemini API Key is missing" in response.json()["detail"]
+
+def test_rate_limiting():
+    """Verify that the rate limiter rejects requests after the threshold is exceeded."""
+    from main import _chat_rate_store, CHAT_RATE_LIMIT
+    
+    # Clear the rate store for a fresh test
+    _chat_rate_store.clear()
+    
+    chat_payload = {"message": "Tell me about carbon"}
+    test_key = "rate_limit_test_key_12345678"
+    
+    # Send CHAT_RATE_LIMIT requests — all should succeed or return expected errors
+    for i in range(CHAT_RATE_LIMIT):
+        response = client.post(
+            "/api/chat",
+            json=chat_payload,
+            headers={"X-Gemini-API-Key": test_key}
+        )
+        # May be 500 (no real Gemini key) but should NOT be 429 yet
+        assert response.status_code != 429, f"Request {i+1} was rate-limited prematurely"
+    
+    # The next request should be rate-limited (429)
+    response = client.post(
+        "/api/chat",
+        json=chat_payload,
+        headers={"X-Gemini-API-Key": test_key}
+    )
+    assert response.status_code == 429
+    assert "Rate limit exceeded" in response.json()["detail"]
+    
+    # Clean up
+    _chat_rate_store.clear()
+
+def test_description_max_length_boundary():
+    """Verify that description at exactly max_length=5000 is accepted."""
+    exact_desc = "Z" * 5000
+    log_data = {
+        "category": "diet",
+        "description": exact_desc,
+        "carbon_saved": 1.0
+    }
+    response = client.post("/api/logs", json=log_data)
+    assert response.status_code == 200
+    state = response.json()
+    assert len(state["logs"]) == 1
+    assert len(state["logs"][0]["description"]) == 5000
+
+    # One more character should be rejected
+    over_desc = "Z" * 5001
+    log_data_over = {
+        "category": "diet",
+        "description": over_desc,
+        "carbon_saved": 1.0
+    }
+    response = client.post("/api/logs", json=log_data_over)
+    assert response.status_code == 422
+

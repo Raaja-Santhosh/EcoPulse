@@ -49,7 +49,7 @@ describe('Zustand useEcoPulseStore (store.ts) Tests', () => {
     // Add log
     store.addLog('transport', 10, 4.11, true, 'Biked to work');
     
-    let updated = useEcoPulseStore.getState();
+    const updated = useEcoPulseStore.getState();
     expect(updated.logs.length).toBe(1);
     expect(updated.logs[0].category).toBe('transport');
     expect(updated.logs[0].value).toBe(10);

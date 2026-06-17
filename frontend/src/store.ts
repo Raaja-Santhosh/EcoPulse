@@ -92,7 +92,7 @@ export const useEcoPulseStore = create<EcoPulseState>()(
       },
 
       addLog: (category, value, carbon, isSaving, title) => {
-        let finalCarbon = isSaving ? -carbon : carbon;
+        const finalCarbon = isSaving ? -carbon : carbon;
 
         const newLog: LogItem = {
           id: Math.random().toString(36).substring(2, 9),

@@ -44,7 +44,7 @@ export const TrackerTab: React.FC = () => {
       }
       computedValue = val;
 
-      let coeff = CarbonMath.calculateTransportEmissions(1, commuteType);
+      const coeff = CarbonMath.calculateTransportEmissions(1, commuteType);
       let typeLabel = 'Petrol Car';
       if (commuteType === 'electric') {
         typeLabel = 'Electric Vehicle';
@@ -64,7 +64,7 @@ export const TrackerTab: React.FC = () => {
       }
       computedValue = val;
 
-      let coeff = CarbonMath.calculateDietEmissions(dietType);
+      const coeff = CarbonMath.calculateDietEmissions(dietType);
       let typeLabel = 'Beef Combo';
       if (dietType === 'chicken') {
         typeLabel = 'Poultry/Fish';
@@ -142,7 +142,7 @@ export const TrackerTab: React.FC = () => {
                 id="log-category"
                 value={category}
                 onChange={(e) => {
-                  setCategory(e.target.value as any);
+                  setCategory(e.target.value as 'transport' | 'diet' | 'energy' | 'waste');
                   setError('');
                 }}
               >
@@ -240,7 +240,7 @@ export const TrackerTab: React.FC = () => {
                   onChange={(e) => setWasteKg(e.target.value)}
                   required
                 />
-                <span className="text-[10px] text-[#4a6b5d] italic">Waste coefficient: 0.5 kg CO₂e/kg</span>
+                <span className="text-[10px] text-[#4a6b5d] italic">Waste coefficient: 1.5 kg CO₂e/kg (landfill default)</span>
               </div>
             )}
 

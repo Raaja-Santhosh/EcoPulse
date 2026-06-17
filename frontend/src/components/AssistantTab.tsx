@@ -169,9 +169,10 @@ export const AssistantTab: React.FC = () => {
       } else {
         throw new Error('Empty response from EcoPulse Backend.');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      const isMissingKey = err.message && (err.message.includes('API Key is missing') || err.message.includes('HTTP 400'));
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      const isMissingKey = errorMsg.includes('API Key is missing') || errorMsg.includes('HTTP 400');
       
       if (savedToken || !isMissingKey) {
         setMessages((prev) => [
@@ -179,7 +180,7 @@ export const AssistantTab: React.FC = () => {
           {
             id: Math.random().toString(),
             sender: 'assistant',
-            text: `⚠️ Backend API Request Failed: ${err.message}. Falling back temporarily to simulated offline response below:`,
+            text: `⚠️ Backend API Request Failed: ${errorMsg}. Falling back temporarily to simulated offline response below:`,
             isError: true
           },
           {
