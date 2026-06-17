@@ -35,8 +35,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Secure headers middleware to prevent Clickjacking, MIME sniffing, XSS, and iframe injection
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none';"
+    return response
+
 # Helper to configure and retrieve the Gemini GenerativeModel
-def get_gemini_model(api_key: str, model_name: str = "gemini-2.0-flash-lite") -> genai.GenerativeModel:
+def get_gemini_model(
+    api_key: str, 
+    model_name: str = "gemini-2.0-flash-lite", 
+    system_instruction: Optional[str] = None
+) -> genai.GenerativeModel:
     genai.configure(api_key=api_key)
     
     gemini_schema = {
@@ -58,6 +73,7 @@ def get_gemini_model(api_key: str, model_name: str = "gemini-2.0-flash-lite") ->
     
     return genai.GenerativeModel(
         model_name=model_name,
+        system_instruction=system_instruction,
         generation_config={
             "response_mime_type": "application/json",
             "response_schema": gemini_schema
@@ -204,8 +220,14 @@ def delete_log_query(id: str = Query(..., description="The ID of the log entry t
 # Chatbot handler logic
 def handle_chat_logic(chat_req: ChatRequest, api_key: str):
     # Build system/prompt context
-    current_state = database.get_state()
-    baseline = current_state.get("baseline")
+    try:
+        current_state = database.get_state()
+        baseline = current_state.get("baseline")
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to load application state: {str(e)}"
+        )
     
     score_context = ""
     if baseline and "calculations" in baseline:
@@ -217,9 +239,7 @@ def handle_chat_logic(chat_req: ChatRequest, api_key: str):
     else:
         score_context = "The user has not completed their baseline assessment yet."
 
-    prompt_context = f"""
-System context:
-You are EcoPulse Assistant, a personal carbon intelligence coach.
+    system_instruction = f"""You are EcoPulse Assistant, a personal carbon intelligence coach.
 Your job is to reply to the user's message and extract any carbon-impact activities they have performed to automatically log them.
 {score_context}
 
@@ -261,8 +281,6 @@ Rules for response:
      * Landfill waste: carbon_saved = -1.5
    - Other:
      * Estimate a reasonable carbon_saved value (positive for savings, negative for emissions) in kg CO2.
-
-User message: "{chat_req.message}"
 """
 
     # Configure genai with the API key first to list models
@@ -314,8 +332,8 @@ User message: "{chat_req.message}"
     last_err = None
     for model_name in models_to_try:
         try:
-            model = get_gemini_model(api_key, model_name=model_name)
-            response = model.generate_content(prompt_context)
+            model = get_gemini_model(api_key, model_name=model_name, system_instruction=system_instruction)
+            response = model.generate_content(chat_req.message)
             break
         except Exception as e:
             last_err = e
@@ -385,7 +403,16 @@ def chat_endpoint(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Google Gemini API Key is missing. Provide it in the X-Gemini-API-Key header or set it as a GEMINI_API_KEY environment variable."
         )
-    return handle_chat_logic(chat_req, api_key)
+    api_key = api_key.strip()
+    try:
+        return handle_chat_logic(chat_req, api_key)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred during chat processing: {str(e)}"
+        )
 
 @app.post("/chat", response_model=ChatResponse)
 def chat_endpoint_alias(
@@ -399,4 +426,13 @@ def chat_endpoint_alias(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Google Gemini API Key is missing. Provide it in the X-Gemini-API-Key header or set it as a GEMINI_API_KEY environment variable."
         )
-    return handle_chat_logic(chat_req, api_key)
+    api_key = api_key.strip()
+    try:
+        return handle_chat_logic(chat_req, api_key)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred during chat processing: {str(e)}"
+        )

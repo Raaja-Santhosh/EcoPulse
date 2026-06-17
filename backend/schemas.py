@@ -41,8 +41,17 @@ class LogCreate(BaseModel):
         return v
 
 class ChatRequest(BaseModel):
-    message: str = Field(..., description="The message sent by the user to the chatbot")
+    message: str = Field(..., description="The message sent by the user to the chatbot", max_length=1000)
     history: Optional[List[Dict[str, Any]]] = Field(default=None, description="Chat conversation history")
+
+    @field_validator("message")
+    @classmethod
+    def sanitize_message(cls, v: str) -> str:
+        # Strip whitespaces and remove null bytes to prevent injection/errors
+        cleaned = v.strip().replace("\x00", "")
+        if not cleaned:
+            raise ValueError("Message cannot be empty or solely whitespace")
+        return cleaned
 
 class AutoLogDetails(BaseModel):
     category: Literal["transport", "diet", "energy", "waste", "other"]
