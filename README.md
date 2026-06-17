@@ -4,8 +4,8 @@ EcoPulse is a premium personal carbon intelligence platform designed to help ind
 
 Unlike standard trackers, EcoPulse focuses on **behavioral change and emotional awareness** through custom dynamic elements: the **Eco-Island Living World** visualization and real-time **Decision Sandbox Nudges**.
 
-**Live Demo**: *(Insert your deployed frontend URL here)*  
-**Backend API**: *(Insert your deployed backend URL here)*
+**Live Demo**: [eco-pulse-rouge.vercel.app](https://eco-pulse-rouge.vercel.app/)  
+**Backend API**: [ecopulse-jmff.onrender.com](https://ecopulse-jmff.onrender.com/)
 
 ---
 
@@ -30,7 +30,7 @@ Unlike standard trackers, EcoPulse focuses on **behavioral change and emotional 
 | **Backend** | FastAPI (Python 3.12) + Pydantic v2 |
 | **AI Integration** | Google Gemini API (structured JSON output, multi-model fallback) |
 | **Testing** | Jest + React Testing Library (frontend), Pytest (backend) |
-| **Deployment** | Netlify / Vercel (frontend), Render via Docker (backend) |
+| **Deployment** | Vercel (frontend), Render via Docker (backend) |
 | **Fonts** | Cormorant Garamond (serif), Plus Jakarta Sans (sans) |
 
 ---
