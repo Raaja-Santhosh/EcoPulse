@@ -176,7 +176,7 @@ export const TrackerTab: React.FC = () => {
                     onChange={(e) => setCommuteType(e.target.value)}
                   >
                     <option value="petrol">Petrol Car (0.411 kg/mi)</option>
-                    <option value="ev">Electric Vehicle (EV) (0.12 kg/mi)</option>
+                    <option value="electric">Electric Vehicle (EV) (0.12 kg/mi)</option>
                     <option value="transit">Public Train/Bus (0.08 kg/mi)</option>
                   </select>
                 </div>
@@ -193,7 +193,7 @@ export const TrackerTab: React.FC = () => {
                     onChange={(e) => setDietType(e.target.value)}
                   >
                     <option value="beef">Beef Combo (7.2 kg/serving)</option>
-                    <option value="poultry">Poultry / Fish (2.4 kg/serving)</option>
+                    <option value="chicken">Poultry / Fish (2.4 kg/serving)</option>
                     <option value="veggie">Vegetarian Meal (1.1 kg/serving)</option>
                     <option value="vegan">Vegan Meal (0.5 kg/serving)</option>
                   </select>
