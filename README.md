@@ -1,48 +1,170 @@
 # EcoPulse 🌱 — Personal Carbon Intelligence & Behavior Awareness Platform
 
-EcoPulse is a premium personal carbon intelligence platform designed to help users calculate, track, simulate, and actively reduce their daily carbon footprint. 
+EcoPulse is a premium personal carbon intelligence platform designed to help individuals understand, track, simulate, and actively reduce their daily carbon footprint.
 
-Unlike standard trackers, EcoPulse focuses on **behavioral change and emotional awareness** through custom dynamic elements: the **Eco-Island Living World** and real-time **Decision Sandbox Nudges**.
+Unlike standard trackers, EcoPulse focuses on **behavioral change and emotional awareness** through custom dynamic elements: the **Eco-Island Living World** visualization and real-time **Decision Sandbox Nudges**.
+
+**Live Demo**: [eco-pulse-rouge.vercel.app](https://eco-pulse-rouge.vercel.app/)  
+**Backend API**: [ecopulse-jmff.onrender.com](https://ecopulse-jmff.onrender.com/)
 
 ---
 
-## 🏆 Chosen Vertical & Problem Statement
-*   **Vertical**: Personal Carbon Footprint Tracking, Awareness, and Reduction.
-*   **The Challenge**: Standard dashboards only track retrospectively, failing to drive real-time decision-point changes. EcoPulse addresses this by shifting focus from retrospect to **real-time decision awareness**.
+## 🏆 Problem Statement
+
+**Vertical**: Personal Carbon Footprint Tracking, Awareness, and Reduction.
+
+**The Challenge**: Standard dashboards only track retrospectively, failing to drive real-time decision-point changes. EcoPulse addresses this by shifting focus from retrospect to **real-time decision awareness** — intercepting high-carbon choices *before* they happen.
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|:---|:---|
+| **Frontend** | React 18 + TypeScript + Vite 8 |
+| **State Management** | Zustand 5 with localStorage persistence |
+| **Charts** | Recharts 3.8 (Pie, Line) |
+| **Animations** | GSAP 3.15, Vanta.js (WebGL fog), Lenis (smooth scroll) |
+| **Styling** | Tailwind CSS 3 + Custom CSS Design System ("Tactile Journal" theme) |
+| **Icons** | Lucide React |
+| **Backend** | FastAPI (Python 3.12) + Pydantic v2 |
+| **AI Integration** | Google Gemini API (structured JSON output, multi-model fallback) |
+| **Testing** | Jest 30 + React Testing Library (frontend), Pytest (backend) |
+| **Deployment** | Vercel (frontend), Render via Docker (backend) |
+| **Fonts** | Cormorant Garamond (serif), Plus Jakarta Sans (sans) |
 
 ---
 
 ## 💡 Core Innovations & Behavioral Mechanics
 
 ### 1. The Eco-Island (Emotional Visualization)
-A living, floating island SVG ecosystem situated directly on the user's dashboard. In real-time, the island's health reflects the user's active emissions:
-*   **Healthy (< 4.0t CO2e)**: Sunny clear skies, flying birds, green grass, and lush green leafy trees.
-*   **Moderate (4.0t - 10.0t CO2e)**: Foggy cloudy skies, birds fly away, grass yellows, and smaller trees wither/turn brown.
-*   **Severe (> 10.0t CO2e)**: Stormy dark grey acid-rain skies, toxic smog overlay, dead brown soil, and completely withered, bare leafless branches.
+A living, floating island SVG ecosystem on the dashboard. In real-time, the island's health reflects the user's active emissions via GSAP-animated transitions:
+- **Healthy (< 4.0t CO₂e)**: Sunny skies, flying birds, green trees, hopping bunnies, swaying flowers, breathing foxes.
+- **Moderate (4.0t – 10.0t CO₂e)**: Foggy skies, birds flee, grass yellows, trees wither, animals fade.
+- **Severe (> 10.0t CO₂e)**: Stormy dark skies, toxic smog, dead soil, bare branches, all dwellers vanish.
 
 ### 2. Decision Point Sandbox (Contextual Nudges)
-Simulates in-the-moment decision points (e.g., ordering food delivery or choosing commuting modes) to inject carbon warnings *before* confirmation:
-*   **Food Delivery**: Prompts warning if choosing Beef Burger (8.2 kg CO2e) over Vegan Bowl (0.6 kg CO2e), outlining the equivalent cost (driving 20 miles).
-*   **Commute Route**: Compares Petrol SUV solo commute (6.2 kg CO2e) to shared Train transit (1.2 kg CO2e).
-*   *Behavioral Loop*: Offers an instant "Switch to Eco-Friendly" button that corrects the choice, logs carbon savings, triggers confetti, and grants XP.
+Simulates real-world choice points (food delivery, commute routes) to inject carbon warnings *before* confirmation:
+- **Food Delivery**: Beef Burger (8.2 kg CO₂e) vs. Vegan Bowl (0.6 kg CO₂e) — with equivalency comparisons.
+- **Commute Route**: Petrol SUV solo (6.2 kg CO₂e) vs. Train transit (0.8 kg CO₂e).
+- **Behavioral Loop**: "Switch to Eco" button corrects the choice, logs savings, triggers confetti, and grants +50 XP.
 
 ### 3. Pluggable GenAI Integration (Google Gemini API)
-Enables evaluators to paste their own Google Gemini API Key locally. When configured, it swaps the simulated Eco-Assistant with actual, live generative conversation running on the `gemini-1.5-flash` model (incorporating the user's active footprint statistics into the model's prompt context).
+Evaluators can paste their own Google Gemini API Key locally. Features:
+- **Dynamic Model Discovery**: Queries available models and sorts by cost-efficiency (lite → flash → pro).
+- **Multi-Model Fallback**: Tries up to 10 model variants across v1/v1beta before failing.
+- **Auto-Log Extraction**: Detects eco activities mentioned in chat and automatically logs them.
+- **Scope-Locked Prompts**: AI refuses non-eco questions and outputs plain-text-only responses.
+- **Offline Simulation**: When no API key is configured, a keyword-based fallback provides relevant eco tips.
+
+### 4. Gamification System
+- **5-Level Progression**: Eco Seed → Eco Seedling → Active Sprout → Forest Protector → Eco Guardian.
+- **XP Rewards**: 50 XP for onboarding, 10 XP per log, 25 XP per habit, 30-50 XP for nudge decisions.
+- **Daily Streaks**: Consecutive logging days tracked and displayed.
+- **Leaderboard**: Competitive ranking with simulated community participants.
+
+### 5. Storytelling Landing Page
+Full-page scroll experience with:
+- **Vanta.js WebGL Fog** background
+- **GSAP ScrollTrigger** animations (word reveals, parallax images, counter animations)
+- **Lenis Smooth Scroll** integration
+- Animated comparative statistics: India (1.9t), Global Target (2.0t), US/Western (16.0t)
 
 ---
 
-## 🔌 Technical Design & Coefficients
-*   **Visual Assets**: High-end custom SVG modules with CSS keyframe cloud drifts and smooth state transitions. 
-*   **Persistence**: Completely serverless. Active data logs, streaks, and API keys are stored client-side via `localStorage`.
-*   **Carbon Math Coefficients**:
-    *   *Commute Modes*: Petrol (`0.411 kg CO2/mi`), EV (`0.12 kg CO2/mi`), Shared Transit (`0.08 kg CO2/mi`).
-    *   *Diet Inputs*: Beef (`7.2 kg`), Poultry/Fish (`2.4 kg`), Veggie (`1.1 kg`), Vegan (`0.5 kg`).
-    *   *Energy Grid Intensity*: Standard grid factor of `0.385 kg CO2e/kWh`.
+## 🔌 Carbon Math Coefficients
+
+| Category | Factor | Value |
+|:---|:---|:---|
+| Transport – Petrol | kg CO₂/mile | 0.411 |
+| Transport – EV | kg CO₂/mile | 0.12 |
+| Transport – Transit | kg CO₂/mile | 0.08 |
+| Diet – Beef | kg CO₂/serving | 7.2 |
+| Diet – Poultry/Fish | kg CO₂/serving | 2.4 |
+| Diet – Vegetarian | kg CO₂/serving | 1.1 |
+| Diet – Vegan | kg CO₂/serving | 0.5 |
+| Energy – Grid | kg CO₂e/kWh | 0.385 |
+| Waste – Compost | kg CO₂e saved | -0.5 |
+| Waste – Recycle | kg CO₂e saved | -0.3 |
+| Waste – Landfill | kg CO₂e emitted | +1.5 |
 
 ---
 
-## 🧪 Robustness Verification
-Includes an automated test runner at `/tests.html` verifying calculation correctness alongside edge case safety bounds:
--   Null inputs.
--   Zero-value commits.
--   Negative distances and energy consumption limits.
+## 📁 Project Structure
+
+```
+EcoPulse/
+├── frontend/               # React 18 + TypeScript + Vite
+│   ├── src/
+│   │   ├── components/     # Tab components (Home, Dashboard, Nudges, Tracker, ActionCenter, Assistant, EcoIsland, LandingPage, Onboarding)
+│   │   ├── store.ts        # Zustand state management with persist middleware
+│   │   ├── utils/           # carbonMath.ts — shared carbon calculation functions
+│   │   └── index.css       # Tactile Journal design system (877 lines)
+│   └── package.json
+├── backend/                # FastAPI + Pydantic v2
+│   ├── main.py             # API endpoints + Gemini structured output chatbot
+│   ├── database.py         # Thread-safe JSON file database
+│   ├── schemas.py          # Pydantic v2 request/response schemas
+│   ├── test_backend.py     # Core endpoint tests (Pytest)
+│   ├── test_backend_brutal.py  # Edge-case stress tests (Pytest)
+│   ├── Dockerfile          # Production Docker image
+│   └── requirements.txt
+├── assets/                 # AI-generated educational illustrations
+└── README.md
+```
+
+---
+
+## 🧪 Testing
+
+### Frontend (Jest + React Testing Library)
+```bash
+cd frontend && npm test
+```
+- **Zustand Store Tests**: Initial state, onboarding completion, log CRUD, habit toggling, XP/level progression, streak tracking.
+- **Onboarding Component Tests**: Rendering, step navigation, disabled states, store integration.
+
+### Backend (Pytest)
+```bash
+cd backend && pytest
+```
+- **Core Tests**: DB initialization, baseline calculation, log CRUD, chat endpoint validation.
+- **Brutal/Edge-Case Tests**: Negative values, massive inputs (1e20), 500KB strings, NaN parameters, type mismatches, Gemini connection failure mocking.
+
+---
+
+## 🚀 Local Development
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev        # Starts Vite dev server on http://localhost:5173
+```
+
+### Backend
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload   # Starts FastAPI on http://localhost:8000
+```
+
+### Environment Variables
+- `GEMINI_API_KEY` — Google Gemini API key (backend, optional)
+- `FRONTEND_URL` — Frontend origin for CORS (backend)
+- `VITE_BACKEND_URL` — Backend URL (frontend)
+
+---
+
+## ♿ Accessibility
+- WAI-ARIA roles (`role="tabpanel"`, `role="radiogroup"`, `aria-label`, `aria-expanded`)
+- Keyboard navigation support
+- `prefers-reduced-motion` media query — disables all GSAP animations
+- Semantic HTML5 elements
+- Focus-visible states for interactive elements
+- Custom scrollbar styling
+
+---
+
+## 📜 License
+© 2026 EcoPulse 🌱 — All rights reserved.

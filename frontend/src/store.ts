@@ -58,11 +58,11 @@ const DEFAULT_HABITS: HabitCommitment[] = [
 ];
 
 export const getLevelInfo = (xp: number) => {
-  if (xp >= 1500) return { level: 5, name: 'Eco Guardian' };
-  if (xp >= 800) return { level: 4, name: 'Forest Protector' };
-  if (xp >= 400) return { level: 3, name: 'Active Sprout' };
-  if (xp >= 150) return { level: 2, name: 'Eco Seedling' };
-  return { level: 1, name: 'Eco Seed' };
+  if (xp >= 1500) return { level: 5, levelName: 'Eco Guardian' };
+  if (xp >= 800) return { level: 4, levelName: 'Forest Protector' };
+  if (xp >= 400) return { level: 3, levelName: 'Active Sprout' };
+  if (xp >= 150) return { level: 2, levelName: 'Eco Seedling' };
+  return { level: 1, levelName: 'Eco Seed' };
 };
 
 export const useEcoPulseStore = create<EcoPulseState>()(

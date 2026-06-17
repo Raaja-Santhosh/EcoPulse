@@ -18,15 +18,15 @@ describe('Zustand useEcoPulseStore (store.ts) Tests', () => {
   });
 
   test('getLevelInfo calculates correct levels and names', () => {
-    expect(getLevelInfo(0)).toEqual({ level: 1, name: 'Eco Seed' });
-    expect(getLevelInfo(149)).toEqual({ level: 1, name: 'Eco Seed' });
-    expect(getLevelInfo(150)).toEqual({ level: 2, name: 'Eco Seedling' });
-    expect(getLevelInfo(399)).toEqual({ level: 2, name: 'Eco Seedling' });
-    expect(getLevelInfo(400)).toEqual({ level: 3, name: 'Active Sprout' });
-    expect(getLevelInfo(799)).toEqual({ level: 3, name: 'Active Sprout' });
-    expect(getLevelInfo(800)).toEqual({ level: 4, name: 'Forest Protector' });
-    expect(getLevelInfo(1499)).toEqual({ level: 4, name: 'Forest Protector' });
-    expect(getLevelInfo(1500)).toEqual({ level: 5, name: 'Eco Guardian' });
+    expect(getLevelInfo(0)).toEqual({ level: 1, levelName: 'Eco Seed' });
+    expect(getLevelInfo(149)).toEqual({ level: 1, levelName: 'Eco Seed' });
+    expect(getLevelInfo(150)).toEqual({ level: 2, levelName: 'Eco Seedling' });
+    expect(getLevelInfo(399)).toEqual({ level: 2, levelName: 'Eco Seedling' });
+    expect(getLevelInfo(400)).toEqual({ level: 3, levelName: 'Active Sprout' });
+    expect(getLevelInfo(799)).toEqual({ level: 3, levelName: 'Active Sprout' });
+    expect(getLevelInfo(800)).toEqual({ level: 4, levelName: 'Forest Protector' });
+    expect(getLevelInfo(1499)).toEqual({ level: 4, levelName: 'Forest Protector' });
+    expect(getLevelInfo(1500)).toEqual({ level: 5, levelName: 'Eco Guardian' });
   });
 
   test('completeOnboarding transitions state, awards 50 XP, and levels up', () => {
@@ -100,13 +100,13 @@ describe('Zustand useEcoPulseStore (store.ts) Tests', () => {
     let updated = useEcoPulseStore.getState();
     expect(updated.xp).toBe(150);
     expect(updated.level).toBe(2);
-    expect((updated as any).name || updated.levelName).toBe('Eco Seedling');
+    expect(updated.levelName).toBe('Eco Seedling');
 
     // Level 2 to Level 5 boundary
     store.addXp(1350);
     updated = useEcoPulseStore.getState();
     expect(updated.xp).toBe(1500);
     expect(updated.level).toBe(5);
-    expect((updated as any).name || updated.levelName).toBe('Eco Guardian');
+    expect(updated.levelName).toBe('Eco Guardian');
   });
 });

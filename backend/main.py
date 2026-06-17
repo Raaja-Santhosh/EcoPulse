@@ -41,7 +41,7 @@ class GeminiResponseSchema(BaseModel):
     auto_log: Optional[AutoLogDetails] = None
 
 # Helper to configure and retrieve the Gemini GenerativeModel
-def get_gemini_model(api_key: str, model_name: str = "gemini-3.1-flash-lite") -> genai.GenerativeModel:
+def get_gemini_model(api_key: str, model_name: str = "gemini-2.0-flash-lite") -> genai.GenerativeModel:
     genai.configure(api_key=api_key)
     return genai.GenerativeModel(
         model_name=model_name,
@@ -253,9 +253,7 @@ User message: "{chat_req.message}"
 """
 
     models_to_try = [
-        "gemini-3.1-flash-lite",
-        "gemini-2.5-flash-lite",
-        "gemini-2.0-flash-lite-preview",
+        "gemini-2.0-flash-lite",
         "gemini-1.5-flash-8b",
         "gemini-1.5-flash",
         "gemini-2.0-flash",

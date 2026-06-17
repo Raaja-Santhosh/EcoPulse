@@ -87,7 +87,6 @@ export const NudgesTab: React.FC = () => {
         true, // isSaving
         `Chose eco-friendly ${option.label} directly`
       );
-      alert(`Eco-friendly choice logged! +30 XP granted.`);
     }
   };
 
@@ -138,7 +137,6 @@ export const NudgesTab: React.FC = () => {
     );
 
     setActiveNudge(null);
-    alert(`High-carbon selection confirmed and logged to your footprint.`);
   };
 
   return (

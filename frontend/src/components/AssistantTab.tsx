@@ -42,7 +42,6 @@ export const AssistantTab: React.FC = () => {
     if (trimmed) {
       localStorage.setItem('ecopulse_gemini_key', trimmed);
       setIsApiKeySaved(true);
-      alert('Gemini API Key saved locally. Live conversational intelligence activated!');
     }
   };
 
@@ -50,7 +49,6 @@ export const AssistantTab: React.FC = () => {
     localStorage.removeItem('ecopulse_gemini_key');
     setApiKey('');
     setIsApiKeySaved(false);
-    alert('Gemini key cleared. Swapping to offline simulation mode.');
   };
 
   const getSimulatedResponse = (query: string): string => {
@@ -138,11 +136,8 @@ User question: "${textToSend}"`;
 
       const getModelsToTry = async (token: string) => {
         const defaultModels = [
-          { version: 'v1beta', name: 'gemini-3.1-flash-lite' },
-          { version: 'v1', name: 'gemini-3.1-flash-lite' },
-          { version: 'v1beta', name: 'gemini-2.5-flash-lite' },
-          { version: 'v1', name: 'gemini-2.5-flash-lite' },
-          { version: 'v1beta', name: 'gemini-2.0-flash-lite-preview' },
+          { version: 'v1beta', name: 'gemini-2.0-flash-lite' },
+          { version: 'v1', name: 'gemini-2.0-flash-lite' },
           { version: 'v1beta', name: 'gemini-1.5-flash-8b' },
           { version: 'v1', name: 'gemini-1.5-flash-8b' },
           { version: 'v1beta', name: 'gemini-1.5-flash' },

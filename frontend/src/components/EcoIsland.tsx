@@ -1,15 +1,14 @@
 import React, { useEffect, useRef } from 'react';
-import { useAppStore } from '../store/useAppStore';
+import { useEcoPulseStore } from '../store';
 import gsap from 'gsap';
 
 export const EcoIsland: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   
-  const footprint = useAppStore((state) => state.footprint);
-  const logs = useAppStore((state) => state.logs);
+  const { categoryScores, logs } = useEcoPulseStore();
   
-  const score = parseFloat((footprint.energy + footprint.transport + footprint.diet + footprint.waste).toFixed(1));
-  const hasLogs = logs.filter(l => !l.isSystem).length > 0;
+  const score = parseFloat((categoryScores.energy + categoryScores.transport + categoryScores.diet + categoryScores.waste).toFixed(1));
+  const hasLogs = logs.length > 0;
 
   useEffect(() => {
     if (!containerRef.current) return;
