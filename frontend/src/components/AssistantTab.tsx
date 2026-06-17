@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useEcoPulseStore } from '../store';
 import { Bot, Send, Key, Sparkles } from 'lucide-react';
+import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
 
 interface ChatMessage {
@@ -18,7 +19,7 @@ const SUGGESTIONS = [
 ];
 
 export const AssistantTab: React.FC = () => {
-  const { score, addLog } = useEcoPulseStore();
+  const { addLog } = useEcoPulseStore();
   const [messages, setMessages] = useState<ChatMessage[]>( [
     {
       id: 'welcome',
@@ -42,6 +43,9 @@ export const AssistantTab: React.FC = () => {
     if (trimmed) {
       localStorage.setItem('ecopulse_gemini_key', trimmed);
       setIsApiKeySaved(true);
+      toast.success('Gemini API Key saved! Connecting to live intelligence.', {
+        style: { border: '2px solid #2b3a34', padding: '16px', color: '#2b3a34', fontWeight: 'bold' }
+      });
     }
   };
 
@@ -49,6 +53,10 @@ export const AssistantTab: React.FC = () => {
     localStorage.removeItem('ecopulse_gemini_key');
     setApiKey('');
     setIsApiKeySaved(false);
+    toast('Gemini key cleared. Offline simulation active.', {
+      icon: '🔌',
+      style: { border: '2px solid #2b3a34', padding: '16px', color: '#2b3a34', fontWeight: 'bold' }
+    });
   };
 
   const getSimulatedResponse = (query: string): string => {
@@ -111,141 +119,46 @@ export const AssistantTab: React.FC = () => {
     }
 
     if (savedToken) {
-      const promptContext = `You are EcoPulse Assistant, a personal carbon intelligence coach. The user currently emits ${score} tons of CO2e per year.
-
-Strict Scope, Length & Formatting Rules:
-1. You must ONLY answer questions, provide tips, or discuss topics related to carbon footprints, environmental sustainability, ecology, climate change, and green living.
-2. If the user's message is not related to carbon footprint, sustainability, ecology, or green living, you must politely decline to answer, explaining that your expertise is strictly limited to carbon footprint tracking and ecological sustainability. Do not answer their unrelated question.
-3. Keep your response extremely short, brief, and directly on point (maximum 2 to 3 sentences, under 50 words).
-4. Do NOT use any Markdown symbols, formatting characters, asterisks (**), hashtags (#), or dashes/bullet points. Output clean, plain text only.
-
-User question: "${textToSend}"`;
-      const payload = {
-        contents: [{
-          parts: [{ text: promptContext }]
-        }]
-      };
-
-      const makeRequest = (version: string, model: string) => {
-        return fetch(`https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${savedToken}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      };
-
-      const getModelsToTry = async (token: string) => {
-        const defaultModels = [
-          { version: 'v1beta', name: 'gemini-2.0-flash-lite' },
-          { version: 'v1', name: 'gemini-2.0-flash-lite' },
-          { version: 'v1beta', name: 'gemini-1.5-flash-8b' },
-          { version: 'v1', name: 'gemini-1.5-flash-8b' },
-          { version: 'v1beta', name: 'gemini-1.5-flash' },
-          { version: 'v1', name: 'gemini-1.5-flash' },
-          { version: 'v1beta', name: 'gemini-2.0-flash' },
-          { version: 'v1', name: 'gemini-2.0-flash' },
-          { version: 'v1beta', name: 'gemini-1.5-pro' },
-          { version: 'v1', name: 'gemini-1.5-pro' }
-        ];
-
-        try {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${token}`);
-          if (res.ok) {
-            const data = await res.json();
-            const apiModels = data.models
-              ?.filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
-              ?.map((m: any) => m.name.replace('models/', ''));
-            
-            if (apiModels && apiModels.length > 0) {
-              const sorted = apiModels.sort((a: string, b: string) => {
-                const aLower = a.toLowerCase();
-                const bLower = b.toLowerCase();
-                const score = (name: string) => {
-                  if (name.includes('3.1-flash-lite') || name.includes('3-lite') || name.includes('3.5-lite') || name.includes('3.1-lite')) return 0;
-                  if (name.includes('lite')) return 1;
-                  if (name.includes('preview')) return 2;
-                  if (name.includes('8b')) return 3;
-                  if (name.includes('flash')) return 4;
-                  if (name.includes('pro')) return 6;
-                  return 5;
-                };
-                return score(aLower) - score(bLower);
-              });
-              
-              const resolved = [];
-              for (const name of sorted) {
-                resolved.push({ version: 'v1beta', name });
-                resolved.push({ version: 'v1', name });
-              }
-              return resolved;
-            }
-          }
-        } catch (e) {
-          console.warn('Failed to dynamically query models, using defaults:', e);
-        }
-        return defaultModels;
-      };
-
-      let response: any = null;
-      const errors: string[] = [];
-
       try {
-        const modelsToTry = await getModelsToTry(savedToken);
-        for (const model of modelsToTry) {
-          try {
-            response = await makeRequest(model.version, model.name);
-            if (response.ok) {
-              break;
-            } else {
-              const errData = await response.json().catch(() => ({}));
-              const errMsg = errData.error?.message || `HTTP ${response.status}`;
-              const fullErr = `[${model.name} (${model.version})]: ${errMsg}`;
-              errors.push(fullErr);
-              console.warn(fullErr);
-              
-              // If it's a key validation abort error, throw immediately
-              if (response.status === 400 && errMsg.toLowerCase().includes('key')) {
-                throw new Error(errMsg);
-              }
-            }
-          } catch (e: any) {
-            errors.push(`[${model.name} (${model.version})]: ${e.message || 'Fetch failed'}`);
-            if (e.message && e.message.toLowerCase().includes('key')) {
-              throw e;
-            }
-          }
-        }
+        const backendBase = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+        const response = await fetch(`${backendBase}/api/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Gemini-API-Key': savedToken,
+          },
+          body: JSON.stringify({ message: textToSend }),
+        });
 
-        if (!response || !response.ok) {
-          // Find any error containing "quota", "limit", or "billing"
-          const priorityError = errors.find(err => 
-            err.toLowerCase().includes('quota') || 
-            err.toLowerCase().includes('limit') || 
-            err.toLowerCase().includes('billing')
-          );
-          if (priorityError) {
-            throw new Error(priorityError);
-          }
-          // Default to the first model's error (gemini-1.5-flash-8b) instead of the last model (gemini-1.5-pro)
-          throw new Error(errors[0] || 'Failed to connect to any Gemini API endpoints.');
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.detail || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
-        const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (replyText) {
+        
+        if (data.reply) {
           setMessages((prev) => [
             ...prev,
-            { id: Math.random().toString(), sender: 'assistant', text: replyText }
+            { id: Math.random().toString(), sender: 'assistant', text: data.reply }
           ]);
-          if (autoLogged) {
+
+          if (data.auto_log) {
+            addLog(
+              data.auto_log.category,
+              1, // value placeholder
+              data.auto_log.carbon_saved,
+              true,
+              data.auto_log.description
+            );
             setMessages((prev) => [
               ...prev,
-              { id: Math.random().toString(), sender: 'system', text: `🌱 Auto-logged: ${autoLogDesc} (-${autoLogCarbon.toFixed(2)} kg CO2e)` }
+              { id: Math.random().toString(), sender: 'system', text: `🌱 Auto-logged (Intelligence): ${data.auto_log.description} (${data.auto_log.carbon_saved > 0 ? '+' : ''}${data.auto_log.carbon_saved} kg CO2e)` }
             ]);
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
           }
         } else {
-          throw new Error('Empty response received from Gemini API.');
+          throw new Error('Empty response from EcoPulse Backend.');
         }
       } catch (err: any) {
         console.error(err);
@@ -254,7 +167,7 @@ User question: "${textToSend}"`;
           {
             id: Math.random().toString(),
             sender: 'assistant',
-            text: `⚠️ Gemini API Request Failed: ${err.message}. Falling back temporarily to simulated offline response below:`,
+            text: `⚠️ Backend API Request Failed: ${err.message}. Falling back temporarily to simulated offline response below:`,
             isError: true
           },
           {
@@ -266,7 +179,7 @@ User question: "${textToSend}"`;
         if (autoLogged) {
           setMessages((prev) => [
             ...prev,
-            { id: Math.random().toString(), sender: 'system', text: `🌱 Auto-logged: ${autoLogDesc} (-${autoLogCarbon.toFixed(2)} kg CO2e)` }
+            { id: Math.random().toString(), sender: 'system', text: `🌱 Auto-logged (Simulation): ${autoLogDesc} (-${autoLogCarbon.toFixed(2)} kg CO2e)` }
           ]);
         }
       } finally {

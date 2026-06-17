@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEcoPulseStore } from '../store';
 import { AlertOctagon, ArrowRight } from 'lucide-react';
+import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
 
 interface Scenario {
@@ -87,6 +88,10 @@ export const NudgesTab: React.FC = () => {
         true, // isSaving
         `Chose eco-friendly ${option.label} directly`
       );
+      toast.success('Eco-friendly choice logged! +30 XP granted.', {
+        icon: '🌱',
+        style: { border: '2px solid #2b3a34', padding: '16px', color: '#2b3a34', fontWeight: 'bold' },
+      });
     }
   };
 
@@ -137,6 +142,10 @@ export const NudgesTab: React.FC = () => {
     );
 
     setActiveNudge(null);
+    toast('High-carbon selection logged to footprint.', {
+      icon: '⚠️',
+      style: { border: '2px solid #2b3a34', padding: '16px', color: '#c87a53', fontWeight: 'bold' },
+    });
   };
 
   return (

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useEcoPulseStore } from '../store';
 import { PlusCircle, Trash } from 'lucide-react';
+import { CarbonMath } from '../utils/carbonMath';
 
 export const TrackerTab: React.FC = () => {
   const { logs, addLog, deleteLog, clearLogs } = useEcoPulseStore();
@@ -43,13 +44,11 @@ export const TrackerTab: React.FC = () => {
       }
       computedValue = val;
 
-      let coeff = 0.411; // petrol
+      let coeff = CarbonMath.calculateTransportEmissions(1, commuteType);
       let typeLabel = 'Petrol Car';
-      if (commuteType === 'ev') {
-        coeff = 0.12;
+      if (commuteType === 'electric') {
         typeLabel = 'Electric Vehicle';
       } else if (commuteType === 'transit') {
-        coeff = 0.08;
         typeLabel = 'Public Transit';
       }
 
@@ -65,16 +64,13 @@ export const TrackerTab: React.FC = () => {
       }
       computedValue = val;
 
-      let coeff = 7.2; // beef
+      let coeff = CarbonMath.calculateDietEmissions(dietType);
       let typeLabel = 'Beef Combo';
-      if (dietType === 'poultry') {
-        coeff = 2.4;
+      if (dietType === 'chicken') {
         typeLabel = 'Poultry/Fish';
       } else if (dietType === 'veggie') {
-        coeff = 1.1;
         typeLabel = 'Vegetarian Meal';
       } else if (dietType === 'vegan') {
-        coeff = 0.5;
         typeLabel = 'Vegan Meal';
       }
 
@@ -89,7 +85,7 @@ export const TrackerTab: React.FC = () => {
         return;
       }
       computedValue = val;
-      calculatedCarbon = val * 0.385; // grid factor
+      calculatedCarbon = CarbonMath.calculateEnergyEmissions(val);
       if (!defaultTitle) {
         defaultTitle = `Consumed ${val} kWh of grid power`;
       }
@@ -100,7 +96,7 @@ export const TrackerTab: React.FC = () => {
         return;
       }
       computedValue = val;
-      calculatedCarbon = val * 0.5; // waste factor
+      calculatedCarbon = val * 1.5; // fallback to generic landfill if type not specified
       if (!defaultTitle) {
         defaultTitle = `Disposed ${val} kg of household waste`;
       }

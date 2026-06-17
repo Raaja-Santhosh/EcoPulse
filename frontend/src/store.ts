@@ -44,6 +44,7 @@ interface EcoPulseState {
   toggleHabit: (id: string) => void;
   addXp: (amount: number) => void;
   resetAll: () => void;
+  checkDailyReset: () => void;
 }
 
 const DEFAULT_HABITS: HabitCommitment[] = [
@@ -172,6 +173,21 @@ export const useEcoPulseStore = create<EcoPulseState>()(
           streak: 0,
           lastLoggedDate: null,
         });
+      },
+
+      checkDailyReset: () => {
+        const today = new Date().toDateString();
+        const lastDate = get().lastLoggedDate;
+        if (lastDate && lastDate !== today) {
+          // Reset all daily habits
+          const resetHabits = get().habits.map((habit) => {
+            if (habit.frequency === 'daily') {
+              return { ...habit, completed: false };
+            }
+            return habit;
+          });
+          set({ habits: resetHabits });
+        }
       },
     }),
     {

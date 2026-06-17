@@ -1,19 +1,26 @@
 import React, { useState } from 'react';
 import { useEcoPulseStore } from './store';
-import Onboarding from './components/Onboarding';
-import HomeTab from './components/HomeTab';
-import DashboardTab from './components/DashboardTab';
-import ActionCenterTab from './components/ActionCenterTab';
-import NudgesTab from './components/NudgesTab';
-import TrackerTab from './components/TrackerTab';
-import AssistantTab from './components/AssistantTab';
-import LandingPage from './components/LandingPage';
 import { Leaf, Award } from 'lucide-react';
+import { Suspense } from 'react';
+import { Toaster } from 'react-hot-toast';
+
+const Onboarding = React.lazy(() => import('./components/Onboarding'));
+const HomeTab = React.lazy(() => import('./components/HomeTab'));
+const DashboardTab = React.lazy(() => import('./components/DashboardTab'));
+const ActionCenterTab = React.lazy(() => import('./components/ActionCenterTab'));
+const NudgesTab = React.lazy(() => import('./components/NudgesTab'));
+const TrackerTab = React.lazy(() => import('./components/TrackerTab'));
+const AssistantTab = React.lazy(() => import('./components/AssistantTab'));
+const LandingPage = React.lazy(() => import('./components/LandingPage'));
 
 const App: React.FC = () => {
-  const { onboarded, xp, level, levelName, resetAll } = useEcoPulseStore();
+  const { onboarded, xp, level, levelName, resetAll, checkDailyReset } = useEcoPulseStore();
   const [activeTab, setActiveTab] = useState<'home' | 'dashboard' | 'actions' | 'nudges' | 'tracker' | 'assistant'>('home');
   const [enteredApp, setEnteredApp] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    checkDailyReset();
+  }, [checkDailyReset]);
 
   // Calculate XP progress percentage
   const getXpProgressPercent = (): number => {
@@ -71,7 +78,11 @@ const App: React.FC = () => {
   };
 
   if (!enteredApp) {
-    return <LandingPage onEnterApp={() => setEnteredApp(true)} />;
+    return (
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#fcfbf7] font-bold text-[#2b3a34] font-serif uppercase tracking-widest text-xl">Loading Experience...</div>}>
+        <LandingPage onEnterApp={() => setEnteredApp(true)} />
+      </Suspense>
+    );
   }
 
   return (
@@ -191,20 +202,22 @@ const App: React.FC = () => {
 
       {/* MAIN CONTENT AREA */}
       <main className="app-container flex-1 py-10 px-6 max-w-7xl mx-auto w-full box-border">
-        {onboarded ? (
-          <div id={`${activeTab}-tab-panel`} role="tabpanel">
-            {renderActiveTab()}
-          </div>
-        ) : (
-          <Onboarding />
-        )}
+        <Suspense fallback={<div className="py-20 flex justify-center"><div className="animate-spin w-8 h-8 border-4 border-[#2b3a34] border-t-[#d4a359] rounded-full"></div></div>}>
+          {onboarded ? (
+            <div id={`${activeTab}-tab-panel`} role="tabpanel">
+              {renderActiveTab()}
+            </div>
+          ) : (
+            <Onboarding />
+          )}
+        </Suspense>
       </main>
 
       {/* FOOTER */}
       <footer className="app-footer text-center py-6 border-t-2 border-[#2b3a34] text-xs text-[#4a6b5d] bg-white">
         © {new Date().getFullYear()} EcoPulse 🌱 — Tactile Physical Carbon Awareness Platform. All rights reserved.
       </footer>
-
+      <Toaster position="bottom-right" />
     </div>
   );
 };
