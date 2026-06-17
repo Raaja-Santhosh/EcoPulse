@@ -51,7 +51,7 @@ Simulates real-world choice points (food delivery, commute routes) to inject car
 
 ### 3. Pluggable GenAI Integration (Google Gemini API)
 Evaluators can paste their own Google Gemini API Key locally. Features:
-- **Dynamic Multi-Model Fallback**: Tries bleeding-edge experimental models (`gemini-2.0-flash-lite-preview-02-05`, `gemini-2.0-flash-exp`) followed by the latest `flash-8b` versions to bypass high-traffic rate limits and ensure 100% uptime.
+- **Dynamic Multi-Model Fallback**: Loops through Google's stable production models (`gemini-1.5-flash`, `gemini-1.5-flash-8b`, `gemini-1.5-pro`) to ensure 100% uptime and bypass rate limits.
 - **Auto-Log Extraction**: Detects eco activities mentioned in chat and automatically logs them.
 - **Scope-Locked Prompts**: AI refuses non-eco questions and outputs plain-text-only responses.
 - **Offline Simulation**: When no API key is configured, a keyword-based fallback provides relevant eco tips.
