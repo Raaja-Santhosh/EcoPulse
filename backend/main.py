@@ -8,7 +8,6 @@ chatbot using Google Gemini with structured JSON output.
 """
 
 import os
-import re
 import uuid
 import json
 import logging
