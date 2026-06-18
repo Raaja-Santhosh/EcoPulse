@@ -42,6 +42,11 @@ const SCENARIOS: Scenario[] = [
   },
 ];
 
+/**
+ * Behavioral decision sandbox that simulates real-world choice points (food and commute)
+ * to demonstrate the platform's nudge mechanics. Awards XP for eco-friendly decisions
+ * and displays warning modals for high-carbon choices.
+ */
 export const NudgesTab: React.FC = () => {
   const { addLog, addXp } = useEcoPulseStore();
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});

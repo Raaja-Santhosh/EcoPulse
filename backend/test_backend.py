@@ -123,3 +123,76 @@ def test_chat_missing_api_key():
     response = client.post("/api/chat", json=chat_payload)
     assert response.status_code == 400
     assert "Google Gemini API Key is missing" in response.json()["detail"]
+
+def test_root_endpoint():
+    """Verify the health-check root endpoint returns expected message."""
+    response = client.get("/")
+    assert response.status_code == 200
+    data = response.json()
+    assert "message" in data
+    assert "EcoPulse" in data["message"]
+
+def test_security_headers_present():
+    """Verify that all security headers are injected by the middleware."""
+    response = client.get("/")
+    assert response.headers.get("X-Frame-Options") == "DENY"
+    assert response.headers.get("X-Content-Type-Options") == "nosniff"
+    assert response.headers.get("X-XSS-Protection") == "1; mode=block"
+    assert "max-age=" in response.headers.get("Strict-Transport-Security", "")
+    assert "frame-ancestors" in response.headers.get("Content-Security-Policy", "")
+
+def test_state_endpoint():
+    """Verify the /api/state endpoint returns complete default state."""
+    response = client.get("/api/state")
+    assert response.status_code == 200
+    state = response.json()
+    assert "baseline" in state
+    assert "logs" in state
+    assert "xp" in state
+    assert "streak" in state
+    assert "last_active" in state
+
+def test_chat_empty_message_rejected():
+    """Verify that empty or whitespace-only chat messages are rejected."""
+    chat_payload = {"message": "   "}
+    response = client.post(
+        "/api/chat",
+        json=chat_payload,
+        headers={"X-Gemini-API-Key": "test_key_123"}
+    )
+    assert response.status_code == 422  # Pydantic validation error
+
+def test_log_with_invalid_date_format():
+    """Verify that a log with a badly formatted date is rejected."""
+    log_data = {
+        "category": "diet",
+        "description": "Ate salad",
+        "carbon_saved": 0.5,
+        "date": "18/06/2026"  # DD/MM/YYYY is not ISO format
+    }
+    response = client.post("/api/logs", json=log_data)
+    assert response.status_code == 422
+
+def test_baseline_vegan_transit_none_waste():
+    """Verify baseline calculation with alternative quiz answers (vegan, transit, compost)."""
+    quiz_data = {
+        "transport_miles": 50.0,
+        "transport_type": "transit",
+        "diet_type": "vegan",
+        "energy_kwh": 100.0,
+        "waste_type": "compost"
+    }
+    # 50 * 0.08 = 4.0
+    # vegan = 0.5
+    # 100 * 0.385 = 38.5
+    # compost = -0.5
+    # total = 4.0 + 0.5 + 38.5 + (-0.5) = 42.5
+    response = client.post("/api/baseline", json=quiz_data)
+    assert response.status_code == 200
+    calcs = response.json()["baseline"]["calculations"]
+    assert calcs["transport"] == 4.0
+    assert calcs["diet"] == 0.5
+    assert calcs["energy"] == 38.5
+    assert calcs["waste"] == -0.5
+    assert calcs["total"] == 42.5
+

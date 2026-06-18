@@ -58,6 +58,11 @@ const DEFAULT_HABITS: HabitCommitment[] = [
   { id: 'h8', category: 'diet', title: 'Meatless Mondays', description: 'Commit to vegetarian eating one full day per week.', savings: 180.0, completed: false, frequency: 'commitment' },
 ];
 
+/**
+ * Determine the user's gamification level and title based on accumulated XP.
+ * @param xp - The total experience points earned.
+ * @returns An object containing the numeric level (1–5) and its display name.
+ */
 export const getLevelInfo = (xp: number) => {
   if (xp >= 1500) return { level: 5, levelName: 'Eco Guardian' };
   if (xp >= 800) return { level: 4, levelName: 'Forest Protector' };
@@ -66,6 +71,7 @@ export const getLevelInfo = (xp: number) => {
   return { level: 1, levelName: 'Eco Seed' };
 };
 
+/** Central Zustand store managing all EcoPulse application state with localStorage persistence. */
 export const useEcoPulseStore = create<EcoPulseState>()(
   persist(
     (set, get) => ({
@@ -80,6 +86,7 @@ export const useEcoPulseStore = create<EcoPulseState>()(
       streak: 0,
       lastLoggedDate: null,
 
+      /** Save onboarding quiz answers, compute the baseline score, and award 50 XP. */
       completeOnboarding: (answers) => {
         const totalBaseline = answers.energy + answers.transport + answers.diet + answers.waste;
         set({
@@ -91,6 +98,7 @@ export const useEcoPulseStore = create<EcoPulseState>()(
         });
       },
 
+      /** Create a new activity log entry, update the daily streak, and award 10 XP. */
       addLog: (category, value, carbon, isSaving, title) => {
         const finalCarbon = isSaving ? -carbon : carbon;
 
@@ -139,6 +147,7 @@ export const useEcoPulseStore = create<EcoPulseState>()(
         set({ logs: [] });
       },
 
+      /** Toggle a habit's completion status and award 25 XP on completion. */
       toggleHabit: (id) => {
         const updatedHabits = get().habits.map((habit) => {
           if (habit.id === id) {
@@ -160,6 +169,7 @@ export const useEcoPulseStore = create<EcoPulseState>()(
         set({ xp: newXp, ...levelInfo });
       },
 
+      /** Reset all application state to defaults (onboarding, logs, XP, habits, streak). */
       resetAll: () => {
         set({
           onboarded: false,
@@ -175,6 +185,7 @@ export const useEcoPulseStore = create<EcoPulseState>()(
         });
       },
 
+      /** Reset daily habits if the current day differs from the last logged date. */
       checkDailyReset: () => {
         const today = new Date().toDateString();
         const lastDate = get().lastLoggedDate;

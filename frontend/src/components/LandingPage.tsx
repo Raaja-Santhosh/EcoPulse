@@ -3,25 +3,50 @@ import React, { useEffect, useRef } from 'react';
 // Declare global window properties for CDNs
 declare global {
   interface Window {
-    VANTA: any;
-    THREE: any;
-    gsap: any;
-    ScrollTrigger: any;
-    Lenis: any;
+    VANTA: {
+      FOG: (config: Record<string, unknown>) => VantaEffect;
+    };
+    THREE: unknown;
+    gsap: {
+      registerPlugin: (plugin: unknown) => void;
+      from: (target: string, config: Record<string, unknown>) => void;
+      fromTo: (target: string, from: Record<string, unknown>, to: Record<string, unknown>) => void;
+      to: (target: string | Element | Element[] | NodeListOf<Element> | (Element | NodeListOf<Element>)[], config: Record<string, unknown>) => void;
+      killTweensOf: (target: Element | Element[] | NodeListOf<Element>) => void;
+    };
+    ScrollTrigger: unknown;
+    Lenis: new (config: Record<string, unknown>) => LenisInstance;
   }
+}
+
+/** Vanta.js fog effect instance with lifecycle methods. */
+interface VantaEffect {
+  resize?: () => void;
+  destroy: () => void;
+}
+
+/** Lenis smooth scroll instance with lifecycle methods. */
+interface LenisInstance {
+  raf: (time: number) => void;
+  destroy: () => void;
+  scrollTo: (target: string) => void;
 }
 
 interface LandingPageProps {
   onEnterApp: () => void;
 }
 
+/**
+ * Cinematic landing page with Vanta.js fog background, GSAP scroll-triggered animations,
+ * Lenis smooth scrolling, and a 4-section editorial narrative guiding users into the app.
+ */
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const vantaRef = useRef<HTMLDivElement>(null);
-  const lenisRef = useRef<any>(null);
+  const lenisRef = useRef<LenisInstance | null>(null);
 
   // Initialize Vanta Fog
   useEffect(() => {
-    let effect: any = null;
+    let effect: VantaEffect | null = null;
     if (vantaRef.current && window.VANTA && window.THREE) {
       try {
         effect = window.VANTA.FOG({
@@ -60,7 +85,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   // Initialize Lenis Smooth Scroll
   useEffect(() => {
     const Lenis = window.Lenis;
-    let lenisInst: any = null;
+    let lenisInst: LenisInstance | null = null;
     if (Lenis) {
       try {
         lenisInst = new Lenis({

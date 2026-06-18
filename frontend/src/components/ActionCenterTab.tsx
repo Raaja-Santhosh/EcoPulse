@@ -5,6 +5,11 @@ import confetti from 'canvas-confetti';
 
 type FilterType = 'all' | 'daily' | 'commitment' | 'energy' | 'transport' | 'diet' | 'waste';
 
+/**
+ * Action center for daily habits and long-term sustainability commitments.
+ * Users can filter by category or frequency, toggle completion for XP rewards,
+ * and track their progress toward eco-friendly lifestyle changes.
+ */
 export const ActionCenterTab: React.FC = () => {
   const { habits, toggleHabit } = useEcoPulseStore();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');

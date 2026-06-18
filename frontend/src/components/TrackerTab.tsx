@@ -3,6 +3,10 @@ import { useEcoPulseStore } from '../store';
 import { PlusCircle, Trash } from 'lucide-react';
 import { CarbonMath } from '../utils/carbonMath';
 
+/**
+ * Manual carbon activity tracker allowing users to log transport, diet, energy,
+ * and waste activities with real-time emission calculations using certified coefficients.
+ */
 export const TrackerTab: React.FC = () => {
   const { logs, addLog, deleteLog, clearLogs } = useEcoPulseStore();
 

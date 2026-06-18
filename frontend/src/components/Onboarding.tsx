@@ -70,6 +70,11 @@ const QUESTIONS: QuizQuestion[] = [
   },
 ];
 
+/**
+ * Onboarding quiz component that guides users through a 4-step baseline carbon
+ * footprint assessment covering energy, transport, diet, and waste categories.
+ * Awards 50 XP and triggers confetti on completion.
+ */
 export const Onboarding: React.FC = () => {
   const completeOnboarding = useEcoPulseStore((state) => state.completeOnboarding);
   const [currentStep, setCurrentStep] = useState(0);

@@ -4,6 +4,10 @@ import { ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis
 import { AlertTriangle } from 'lucide-react';
 import { EcoIsland } from './EcoIsland';
 
+/**
+ * Dashboard view displaying carbon footprint analytics, XP progression,
+ * gamification leaderboard, and the interactive Eco-Island SVG visualization.
+ */
 export const DashboardTab: React.FC = () => {
   const { score, categoryScores, logs, xp, streak, resetAll, clearLogs } = useEcoPulseStore();
 

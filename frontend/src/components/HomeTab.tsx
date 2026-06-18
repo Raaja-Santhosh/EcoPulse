@@ -59,6 +59,10 @@ interface HomeTabProps {
   onNavigateToDashboard: () => void;
 }
 
+/**
+ * Eco-literacy home tab providing educational content about carbon footprints,
+ * emission sources, and interactive accordion breakdowns of the four impact categories.
+ */
 export const HomeTab: React.FC<HomeTabProps> = ({ onNavigateToDashboard }) => {
   const [activeAccordion, setActiveAccordion] = useState<string | null>('energy');
 

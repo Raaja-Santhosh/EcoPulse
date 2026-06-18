@@ -13,6 +13,7 @@ const TrackerTab = React.lazy(() => import('./components/TrackerTab'));
 const AssistantTab = React.lazy(() => import('./components/AssistantTab'));
 const LandingPage = React.lazy(() => import('./components/LandingPage'));
 
+/** Root application component. Manages tab navigation, XP progression, and renders the active view. */
 const App: React.FC = () => {
   const { onboarded, xp, level, levelName, resetAll, checkDailyReset } = useEcoPulseStore();
   const [activeTab, setActiveTab] = useState<'home' | 'dashboard' | 'actions' | 'nudges' | 'tracker' | 'assistant'>('home');
@@ -23,6 +24,7 @@ const App: React.FC = () => {
   }, [checkDailyReset]);
 
   // Calculate XP progress percentage
+  /** Calculate the XP progress percentage within the current level tier (0–100). */
   const getXpProgressPercent = (): number => {
     if (xp >= 1500) return 100;
     
@@ -45,6 +47,7 @@ const App: React.FC = () => {
     return Math.min(100, Math.max(0, (current / range) * 100));
   };
 
+  /** Render the component corresponding to the currently active navigation tab. */
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'home':

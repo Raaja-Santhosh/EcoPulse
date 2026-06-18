@@ -18,6 +18,11 @@ const SUGGESTIONS = [
   { label: 'Explain carbon score', query: 'What does a carbon score of 4 tons mean, and how does it compare globally?' },
 ];
 
+/**
+ * AI-powered chatbot interface for carbon footprint coaching.
+ * Supports both live Gemini API mode (with user-provided API key) and
+ * offline simulated responses. Auto-logs detected eco-activities from messages.
+ */
 export const AssistantTab: React.FC = () => {
   const { addLog, score, categoryScores, onboarded } = useEcoPulseStore();
   const [messages, setMessages] = useState<ChatMessage[]>( [

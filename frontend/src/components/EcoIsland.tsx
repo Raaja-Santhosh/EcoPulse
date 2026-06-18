@@ -2,6 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import { useEcoPulseStore } from '../store';
 import gsap from 'gsap';
 
+/**
+ * Reactive SVG ecosystem visualization that morphs based on the user's carbon footprint.
+ * Low footprints show lush trees, clear skies, and animated wildlife; high footprints
+ * trigger smog, dead trees, and fleeing animals. Uses GSAP for smooth SVG attribute transitions.
+ */
 export const EcoIsland: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   
