@@ -91,6 +91,14 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-[#fcfbf7] text-[#2b3a34] font-sans">
       
+      {/* Skip Navigation Link for keyboard/screen reader users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[#4a6b5d] focus:text-white focus:border-2 focus:border-[#2b3a34] focus:font-bold focus:text-sm"
+      >
+        Skip to main content
+      </a>
+      
       {/* HEADER SECTION */}
       <header className="app-header border-b-2 border-[#2b3a34] bg-white px-8 py-5 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-50">
         <div className="logo flex items-center gap-2">
@@ -180,7 +188,7 @@ const App: React.FC = () => {
             <Award className="w-4 h-4 text-[#d4a359]" />
             <span>Level {level}: {levelName}</span>
           </div>
-          <div id="xp-progress-bar-container" className="w-[130px] h-2 border-2 border-[#2b3a34] bg-[#f5f3eb] overflow-hidden">
+          <div id="xp-progress-bar-container" className="w-[130px] h-2 border-2 border-[#2b3a34] bg-[#f5f3eb] overflow-hidden" role="progressbar" aria-valuenow={Math.round(getXpProgressPercent())} aria-valuemin={0} aria-valuemax={100} aria-label={`XP progress: ${xp} XP, Level ${level} ${levelName}`}>
             <div
               id="xp-progress-bar"
               className="h-full bg-[#4a6b5d] transition-all duration-500"
@@ -196,6 +204,7 @@ const App: React.FC = () => {
                 }
               }}
               className="text-[10px] font-bold uppercase underline tracking-[0.5px] text-[#c87a53] hover:text-[#2b3a34] transition-all mt-0.5 cursor-pointer"
+              aria-label="Reset all progress and retake the baseline quiz"
             >
               Reset & Retake Quiz
             </button>
@@ -204,7 +213,7 @@ const App: React.FC = () => {
       </header>
 
       {/* MAIN CONTENT AREA */}
-      <main className="app-container flex-1 py-10 px-6 max-w-7xl mx-auto w-full box-border">
+      <main id="main-content" className="app-container flex-1 py-10 px-6 max-w-7xl mx-auto w-full box-border" aria-live="polite">
         <Suspense fallback={<div className="py-20 flex justify-center"><div className="animate-spin w-8 h-8 border-4 border-[#2b3a34] border-t-[#d4a359] rounded-full"></div></div>}>
           {onboarded ? (
             <div id={`${activeTab}-tab-panel`} role="tabpanel">

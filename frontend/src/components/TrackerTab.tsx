@@ -137,7 +137,7 @@ export const TrackerTab: React.FC = () => {
             LOG NEW ACTIVITY
           </h3>
 
-          <form onSubmit={handleLogSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleLogSubmit} className="flex flex-col gap-4" aria-label="Log a new carbon activity">
             
             {/* Category Select */}
             <div className="form-group">
@@ -299,7 +299,7 @@ export const TrackerTab: React.FC = () => {
 
       {/* RIGHT LOGS HISTORY COLUMN */}
       <div className="lg:col-span-2">
-        <div className="neo-card bg-white border-2 border-[#2b3a34] shadow-[4px_4px_0px_#2b3a34] p-6 flex flex-col gap-4">
+        <div className="neo-card bg-white border-2 border-[#2b3a34] shadow-[4px_4px_0px_#2b3a34] p-6 flex flex-col gap-4" aria-live="polite">
           <div className="flex justify-between items-center border-b-2 border-[#2b3a34] pb-2">
             <h3 className="text-xl font-serif font-bold text-[#2b3a34] uppercase">
               ACTIVITY LOG HISTORY
@@ -309,6 +309,7 @@ export const TrackerTab: React.FC = () => {
                 type="button"
                 onClick={clearLogs}
                 className="secondary-btn border-[#c87a53] text-[#c87a53] text-xs py-1 px-3"
+                aria-label="Clear all activity log entries"
               >
                 CLEAR ALL
               </button>
